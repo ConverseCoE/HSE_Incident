@@ -500,16 +500,6 @@ const InvestigationHub = ({ onSelectIncident }) => {
 
             </div>
 
-            {/* Right: Submit Button */}
-            <div>
-              <button 
-                onClick={handleSubmitSignoff} 
-                className="btn btn-primary"
-                style={{ background: 'var(--accent-cyan)', border: 'none', fontSize: '0.8rem', padding: '8px 16px', fontWeight: 600 }}
-              >
-                Submit Investigation for Sign-off
-              </button>
-            </div>
           </div>
 
           {/* Full-Width Workspace Main Body */}
@@ -522,7 +512,8 @@ const InvestigationHub = ({ onSelectIncident }) => {
                   { id: 'timeline', label: '2. Timeline Builder' },
                   { id: 'rca', label: '3. Root Cause (5-Whys & Fishbone)' },
                   { id: 'barriers', label: '4. Barrier Safeguard Audit' },
-                  { id: 'capa', label: '5. CAPA Action Mapping' }
+                  { id: 'capa', label: '5. CAPA Action Mapping' },
+                  { id: 'signoff', label: '6. Final Review & Sign-off' }
                 ].map(tab => (
                   <button
                     key={tab.id}
@@ -1251,6 +1242,142 @@ const InvestigationHub = ({ onSelectIncident }) => {
                         )}
                       </div>
 
+                    </div>
+
+                  </div>
+                )}
+
+                {/* TAB 6: FINAL REVIEW & SIGN-OFF */}
+                {activeWorkspaceTab === 'signoff' && (
+                  <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 0.8fr', gap: '32px', textAlign: 'left' }}>
+                    
+                    {/* Left Column: Full Master Audit Summary */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                      
+                      {/* Overview Header */}
+                      <div style={{ background: '#ffffff', borderRadius: '12px', border: '1px solid var(--border-color)', padding: '24px' }}>
+                        <h3 style={{ fontSize: '0.96rem', fontWeight: 700, margin: '0 0 6px 0', color: 'var(--text-primary)' }}>Investigation Master Audit Summary</h3>
+                        <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', margin: 0 }}>
+                          Review all 5 investigation stages before submitting for HSE Manager approval.
+                        </p>
+                      </div>
+
+                      {/* 1. Root Cause Summary Card */}
+                      <div style={{ background: '#ffffff', borderRadius: '12px', border: '1px solid var(--border-color)', padding: '24px' }}>
+                        <h4 style={{ fontSize: '0.88rem', fontWeight: 700, margin: '0 0 10px 0', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <Award size={16} style={{ color: 'var(--accent-green)' }} /> 1. Finalized Systemic Root Cause
+                        </h4>
+                        <div style={{
+                          padding: '14px 16px',
+                          borderRadius: '8px',
+                          background: activeIncident.investigation?.fiveWhys?.rootCause?.trim() ? 'rgba(16, 185, 129, 0.04)' : 'rgba(239, 68, 68, 0.04)',
+                          border: activeIncident.investigation?.fiveWhys?.rootCause?.trim() ? '1px dashed rgba(16, 185, 129, 0.25)' : '1px dashed var(--accent-red)',
+                          fontSize: '0.84rem',
+                          fontWeight: 600,
+                          color: activeIncident.investigation?.fiveWhys?.rootCause?.trim() ? 'var(--text-primary)' : 'var(--accent-red)',
+                          lineHeight: '1.4'
+                        }}>
+                          {activeIncident.investigation?.fiveWhys?.rootCause?.trim() || '⚠️ Root Cause not defined! Please go back to Tab 3 (Root Cause) to define it.'}
+                        </div>
+                      </div>
+
+                      {/* 2. Fact-Finding & Timeline Audit Card */}
+                      <div style={{ background: '#ffffff', borderRadius: '12px', border: '1px solid var(--border-color)', padding: '24px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                        <h4 style={{ fontSize: '0.88rem', fontWeight: 700, margin: 0, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <CheckSquare size={16} style={{ color: 'var(--accent-cyan)' }} /> 2. Fact-Finding & Timeline Status
+                        </h4>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
+                          <div style={{ background: '#f8fafc', padding: '10px', borderRadius: '6px', border: '1px solid var(--border-color)' }}>
+                            <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', display: 'block' }}>Checklist Status</span>
+                            <span style={{ fontSize: '0.84rem', fontWeight: 700, color: 'var(--accent-green)' }}>
+                              {activeIncident.investigation?.checklist ? Math.round((activeIncident.investigation.checklist.filter(c => c.completed).length / activeIncident.investigation.checklist.length) * 100) : 100}% Done
+                            </span>
+                          </div>
+                          <div style={{ background: '#f8fafc', padding: '10px', borderRadius: '6px', border: '1px solid var(--border-color)' }}>
+                            <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', display: 'block' }}>Witness Statements</span>
+                            <span style={{ fontSize: '0.84rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+                              {activeIncident.witnesses?.length || 0} Recorded
+                            </span>
+                          </div>
+                          <div style={{ background: '#f8fafc', padding: '10px', borderRadius: '6px', border: '1px solid var(--border-color)' }}>
+                            <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', display: 'block' }}>Timeline Events</span>
+                            <span style={{ fontSize: '0.84rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+                              {getTimelineEvents(activeIncident).length} Milestones
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* 3. Barrier & CAPA Audit Card */}
+                      <div style={{ background: '#ffffff', borderRadius: '12px', border: '1px solid var(--border-color)', padding: '24px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                        <h4 style={{ fontSize: '0.88rem', fontWeight: 700, margin: 0, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <Shield size={16} style={{ color: 'var(--accent-cyan)' }} /> 3. Barrier Safeguards & CAPA Actions
+                        </h4>
+                        <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                          <strong>Defined Actions ({activeIncident.actions?.length || 0}):</strong>
+                          {(!activeIncident.actions || activeIncident.actions.length === 0) ? (
+                            <span style={{ display: 'block', color: 'var(--text-muted)', marginTop: '4px', fontStyle: 'italic' }}>No corrective actions assigned yet.</span>
+                          ) : (
+                            <ul style={{ margin: '6px 0 0 0', paddingLeft: '18px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                              {activeIncident.actions.map(act => (
+                                <li key={act.id}>
+                                  <strong>{act.actionNumber}</strong>: {act.title} (Owner: <em>{act.owner}</em>, Due: <em>{act.dueDate}</em>)
+                                </li>
+                              ))}
+                            </ul>
+                          )}
+                        </div>
+                      </div>
+
+                    </div>
+
+                    {/* Right Column: Sign-off Gate Card */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                      <div style={{ background: '#ffffff', borderRadius: '12px', border: '1px solid var(--border-color)', padding: '28px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                        <h3 style={{ fontSize: '0.96rem', fontWeight: 700, margin: 0, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <ShieldAlert size={18} style={{ color: 'var(--accent-cyan)' }} />
+                          Sign-off Submission Gate
+                        </h3>
+
+                        <div style={{ background: '#f8fafc', padding: '16px', borderRadius: '8px', border: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                          <span style={{ fontSize: '0.74rem', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase' }}>Audit Gate Status</span>
+                          {activeIncident.investigation?.fiveWhys?.rootCause?.trim() ? (
+                            <span style={{ fontSize: '0.84rem', fontWeight: 700, color: 'var(--accent-green)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                              <Check size={16} /> Audit Passed - Ready for Submission
+                            </span>
+                          ) : (
+                            <span style={{ fontSize: '0.84rem', fontWeight: 700, color: 'var(--accent-red)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                              <AlertCircle size={16} /> Root Cause Pending
+                            </span>
+                          )}
+                        </div>
+
+                        <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', margin: 0, lineHeight: 1.5 }}>
+                          By submitting this investigation, the case will transition to <strong>HSE Manager Review & Sign-off</strong>. The lead investigator will be notified once final approval is granted.
+                        </p>
+
+                        <button 
+                          onClick={handleSubmitSignoff}
+                          disabled={!activeIncident.investigation?.fiveWhys?.rootCause?.trim()}
+                          className="btn btn-primary"
+                          style={{
+                            background: activeIncident.investigation?.fiveWhys?.rootCause?.trim() ? 'var(--accent-cyan)' : 'var(--text-muted)',
+                            border: 'none',
+                            padding: '14px 20px',
+                            fontSize: '0.9rem',
+                            fontWeight: 700,
+                            width: '100%',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '8px',
+                            cursor: activeIncident.investigation?.fiveWhys?.rootCause?.trim() ? 'pointer' : 'not-allowed',
+                            opacity: activeIncident.investigation?.fiveWhys?.rootCause?.trim() ? 1 : 0.6
+                          }}
+                        >
+                          <Save size={18} /> Submit Investigation for Sign-off
+                        </button>
+                      </div>
                     </div>
 
                   </div>
