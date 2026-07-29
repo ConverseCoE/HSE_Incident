@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useDatabase } from '../context/DatabaseContext';
 import { useUser } from '../context/UserContext';
+import BarrierAnalysis from '../components/BarrierAnalysis';
 import { 
   ShieldAlert, AlertCircle, CheckSquare, Calendar, ChevronRight, 
   ClipboardList, Plus, Trash, Save, ArrowDown, X, Activity, 
@@ -159,6 +160,11 @@ const InvestigationHub = ({ onSelectIncident }) => {
     if (!activeIncident) return;
     updateInvestigationDetails(activeIncident.id, { fiveWhys: fiveWhysData }, currentUser.name);
     alert('RCA models saved successfully.');
+  };
+
+  const handleSaveBarriers = (updatedBarriers) => {
+    if (!activeIncident) return;
+    updateInvestigationDetails(activeIncident.id, { barrierAnalysis: updatedBarriers }, currentUser.name);
   };
 
   const handleAddFishboneCause = (category) => {
@@ -887,6 +893,14 @@ const InvestigationHub = ({ onSelectIncident }) => {
                       </div>
                     )}
 
+                    {/* BARRIER ANALYSIS CONSOLE */}
+                    <div style={{ marginTop: '16px' }}>
+                      <BarrierAnalysis 
+                        initialBarriers={activeIncident.investigation?.barrierAnalysis || []}
+                        onSave={handleSaveBarriers}
+                      />
+                    </div>
+
                   </div>
                 )}
 
@@ -924,28 +938,32 @@ const InvestigationHub = ({ onSelectIncident }) => {
                           Safety Barrier Failures Review
                         </h3>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                          {[
-                            { id: 'b1', name: 'Technical (Tool Lanyard)', status: 'Failed', note: 'Fractured tether connector' },
-                            { id: 'b2', name: 'Operational (Harness Checks)', status: 'Failed', note: 'Omitted from toolbox check sheet' },
-                            { id: 'b3', name: 'Administrative (LOTO Permit)', status: 'Effective', note: 'Rigging clearance signed off' }
-                          ].map(bar => (
-                            <div key={bar.id} style={{ display: 'flex', justifycontent: 'space-between', alignItems: 'center', background: '#f8fafc', padding: '8px 14px', borderRadius: '6px', border: '1px solid var(--border-color)', fontSize: '0.8rem' }}>
-                              <div>
-                                <strong>{bar.name}</strong>
-                                <span style={{ display: 'block', fontSize: '0.72rem', color: 'var(--text-muted)' }}>{bar.note}</span>
-                              </div>
-                              <span style={{
-                                fontSize: '0.68rem',
-                                padding: '2px 8px',
-                                borderRadius: '4px',
-                                fontWeight: 700,
-                                background: bar.status === 'Failed' ? 'rgba(239, 68, 68, 0.08)' : 'rgba(16, 185, 129, 0.08)',
-                                color: bar.status === 'Failed' ? 'var(--accent-red)' : 'var(--accent-green)'
-                              }}>
-                                {bar.status}
-                              </span>
-                            </div>
-                          ))}
+                          {(!activeIncident.investigation?.barrierAnalysis || activeIncident.investigation.barrierAnalysis.length === 0) ? (
+                            <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>No barriers evaluated yet. Go to RCA tab to add barrier evaluations.</span>
+                          ) : (
+                            activeIncident.investigation.barrierAnalysis.map((bar, idx) => {
+                              const isFailed = !bar.functioned;
+                              return (
+                                <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#f8fafc', padding: '10px 14px', borderRadius: '6px', border: '1px solid var(--border-color)', fontSize: '0.8rem' }}>
+                                  <div>
+                                    <strong style={{ color: 'var(--text-primary)' }}>{bar.barrier}</strong>
+                                    {bar.reason && <span style={{ display: 'block', fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '2px' }}>Failure Reason: {bar.reason}</span>}
+                                    {bar.owner && <span style={{ display: 'block', fontSize: '0.7rem', color: 'var(--accent-cyan)' }}>Owner: {bar.owner}</span>}
+                                  </div>
+                                  <span style={{
+                                    fontSize: '0.68rem',
+                                    padding: '2px 8px',
+                                    borderRadius: '4px',
+                                    fontWeight: 700,
+                                    background: isFailed ? 'rgba(239, 68, 68, 0.08)' : 'rgba(16, 185, 129, 0.08)',
+                                    color: isFailed ? 'var(--accent-red)' : 'var(--accent-green)'
+                                  }}>
+                                    {isFailed ? 'Failed / Bypassed' : 'Functioned'}
+                                  </span>
+                                </div>
+                              );
+                            })
+                          )}
                         </div>
                       </div>
 
