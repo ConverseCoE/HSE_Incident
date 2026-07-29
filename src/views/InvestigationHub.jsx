@@ -327,13 +327,14 @@ const InvestigationHub = ({ onSelectIncident }) => {
               <div 
                 key={col.id} 
                 style={{
-                  background: '#f8fafc',
+                  background: '#ffffff',
                   border: '1px solid var(--border-color)',
                   borderRadius: '12px',
                   padding: '16px',
                   display: 'flex',
                   flexDirection: 'column',
-                  gap: '12px'
+                  gap: '12px',
+                  boxShadow: '0 2px 8px rgba(15, 23, 42, 0.03)'
                 }}
               >
                 {/* Column Title Header */}
@@ -345,8 +346,9 @@ const InvestigationHub = ({ onSelectIncident }) => {
                     <span style={{
                       fontSize: '0.75rem',
                       fontWeight: 700,
-                      background: 'rgba(15,23,42,0.06)',
-                      color: 'var(--text-primary)',
+                      background: 'rgba(6, 182, 212, 0.08)',
+                      color: 'var(--accent-cyan)',
+                      border: '1px solid rgba(6, 182, 212, 0.2)',
                       padding: '2px 8px',
                       borderRadius: '10px'
                     }}>
@@ -388,12 +390,12 @@ const InvestigationHub = ({ onSelectIncident }) => {
                           key={inc.id}
                           onClick={() => handleOpenWorkspace(inc)}
                           style={{
-                            background: '#ffffff',
-                            border: '1px solid var(--border-color)',
+                            background: '#f8fafc',
+                            border: '1px solid #e2e8f0',
                             borderRadius: '8px',
-                            padding: '12px',
+                            padding: '14px',
                             cursor: 'pointer',
-                            transition: 'all 0.2s ease',
+                            transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
                             display: 'flex',
                             flexDirection: 'column',
                             gap: '8px',
@@ -401,11 +403,13 @@ const InvestigationHub = ({ onSelectIncident }) => {
                           }}
                           onMouseEnter={(e) => {
                             e.currentTarget.style.borderColor = 'var(--accent-cyan)';
-                            e.currentTarget.style.transform = 'translateY(-1px)';
-                            e.currentTarget.style.boxShadow = '0 4px 12px rgba(15,23,42,0.05)';
+                            e.currentTarget.style.background = '#ffffff';
+                            e.currentTarget.style.transform = 'translateY(-2px)';
+                            e.currentTarget.style.boxShadow = '0 6px 16px rgba(15,23,42,0.08)';
                           }}
                           onMouseLeave={(e) => {
-                            e.currentTarget.style.borderColor = 'var(--border-color)';
+                            e.currentTarget.style.borderColor = '#e2e8f0';
+                            e.currentTarget.style.background = '#f8fafc';
                             e.currentTarget.style.transform = 'none';
                             e.currentTarget.style.boxShadow = '0 1px 3px rgba(0,0,0,0.02)';
                           }}
