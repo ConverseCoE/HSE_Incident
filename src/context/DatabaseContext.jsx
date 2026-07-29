@@ -140,7 +140,32 @@ const DEFAULT_INCIDENTS = [
       ]
     },
     actions: [
-      { id: 'act-1', actionNumber: 'ACT-2026-0001', type: 'Preventive', title: 'Procure and distribute tool tethers for all wind technicians', rootCauseAddressed: 'Lack of integrated tool tethers in kits', owner: 'Thomas Mueller', ownerDepartment: 'Procurement', site: 'DK-WF01', priority: 'High', dueDate: '2026-08-15', status: 'Assigned', progress: 0, requiredEvidence: 'Purchase orders and photo verification of distributed tethers.' }
+      { 
+        id: 'act-1', 
+        actionNumber: 'ACT-2026-0001', 
+        type: 'Preventive', 
+        title: 'Procure and distribute tool tethers for all wind technicians', 
+        rootCauseAddressed: 'Lack of integrated tool tethers in kits', 
+        owner: 'Thomas Mueller', 
+        ownerDepartment: 'Procurement', 
+        site: 'DK-WF01', 
+        priority: 'High', 
+        dueDate: '2026-08-15', 
+        status: 'In progress', 
+        progress: 40, 
+        requiredEvidence: 'Purchase orders and photo verification of distributed tethers.',
+        extensionRequests: [
+          {
+            id: 'ext-req-101',
+            requestedDueDate: '2026-08-30',
+            reason: 'Global supply chain delay on certified 5kg tool tethers from manufacturer.',
+            interimControls: 'Equipped field technicians with backup wrist lanyards and temporary drop netting.',
+            requestedBy: 'Thomas Mueller',
+            requestedDate: '2026-07-28',
+            status: 'Pending'
+          }
+        ]
+      }
     ],
     approvals: [],
     communications: [],
@@ -198,7 +223,33 @@ const DEFAULT_INCIDENTS = [
     ],
     witnesses: [],
     investigation: null,
-    actions: [],
+    actions: [
+      {
+        id: 'act-3',
+        actionNumber: 'ACT-2026-0003',
+        type: 'Corrective',
+        title: 'Install redundant Novec-1230 gas pressure sensors on BESS Container 1',
+        rootCauseAddressed: 'Lack of redundant pressure sensor alerts in battery racks',
+        owner: 'Alex Chen',
+        ownerDepartment: 'Electrical Engineering',
+        site: 'DE-BESS03',
+        priority: 'High',
+        dueDate: '2026-08-01',
+        status: 'In progress',
+        progress: 50,
+        extensionRequests: [
+          {
+            id: 'ext-req-102',
+            requestedDueDate: '2026-08-20',
+            reason: 'Specialized Novec sensor calibration certificates delayed by testing laboratory.',
+            interimControls: 'Performing twice-daily manual pressure gauge logs on BESS manifolds.',
+            requestedBy: 'Alex Chen',
+            requestedDate: '2026-07-27',
+            status: 'Pending'
+          }
+        ]
+      }
+    ],
     approvals: [],
     auditLogs: [
       { timestamp: '2026-07-19T22:30:00Z', user: 'Elena Rostova', action: 'Created Critical Report', details: 'Thermal event triggered immediate SMS/Teams alerts to Operations, HSE Managers, and Fire coordinators.' }
