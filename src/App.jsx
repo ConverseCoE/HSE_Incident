@@ -13,12 +13,13 @@ import ActionManagement from './views/ActionManagement';
 import ApprovalPanel from './views/ApprovalPanel';
 import AdminRoleMapping from './views/AdminRoleMapping';
 import InvestigationHub from './views/InvestigationHub';
+import LessonsLearned from './views/LessonsLearned';
 import logoImg from './assets/Logo.png';
 import logoGraphicsImg from './assets/Logo Graphics.png';
 import { 
   ShieldAlert, LayoutDashboard, Calendar, ClipboardList, CheckSquare, 
   BarChart2, FilePlus2, AlertTriangle, Eye, ShieldCheck, Sun, Search, ArrowLeftToLine, ArrowRightToLine,
-  PhoneCall, Globe, Users
+  PhoneCall, Globe, Users, BookOpen
 } from 'lucide-react';
 
 const AppContent = () => {
@@ -93,6 +94,10 @@ const AppContent = () => {
         crumbs.push('Workspace', 'Investigations');
         title = 'Investigation Hub';
         Icon = ShieldAlert;
+      } else if (activeTab === 'lessons') {
+        crumbs.push('Knowledge Hub', 'Lessons Learned');
+        title = 'Lessons Learned & Safety Alerts';
+        Icon = BookOpen;
       } else if (activeTab === 'admin') {
         crumbs.push('System Admin', 'Roles');
         title = 'Role Mapping Registry';
@@ -225,6 +230,15 @@ const AppContent = () => {
           >
             <ClipboardList className="menu-icon" />
             <span>Actions Registry</span>
+          </li>
+
+          <li 
+            onClick={() => handleViewChangeFromHeader('lessons')} 
+            className={`menu-item ${activeTab === 'lessons' && activeView === 'hub' ? 'active' : ''}`}
+            title="Lessons Learned"
+          >
+            <BookOpen className="menu-icon" />
+            <span>Lessons Learned</span>
           </li>
 
           <li 
@@ -569,6 +583,9 @@ const AppContent = () => {
               )}
               {activeTab === 'actions' && (
                 <ActionManagement onSelectIncident={handleSelectIncident} />
+              )}
+              {activeTab === 'lessons' && (
+                <LessonsLearned onSelectIncident={handleSelectIncident} />
               )}
               {activeTab === 'approvals' && (
                 <ApprovalPanel onViewIncident={handleSelectIncident} />
