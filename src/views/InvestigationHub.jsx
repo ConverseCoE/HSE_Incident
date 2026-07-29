@@ -419,116 +419,101 @@ const InvestigationHub = ({ onSelectIncident }) => {
           flexDirection: 'column',
           animation: 'fade-in 0.2s ease-out forwards'
         }}>
-          {/* Workspace Header */}
+          {/* Workspace Header Toolbar with Integrated Metadata */}
           <div style={{
             padding: '16px 32px',
             borderBottom: '1px solid var(--border-color)',
             background: '#ffffff',
             display: 'flex',
             justifyContent: 'space-between',
-            alignItems: 'center'
+            alignItems: 'center',
+            gap: '24px'
           }}>
-            <div style={{ textAlign: 'left' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.68rem', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase' }}>
-                <span>Investigation Workspace</span>
-                <span>/</span>
-                <span style={{ color: 'var(--accent-cyan)' }}>{activeIncident.incidentNumber}</span>
-              </div>
-              <h1 style={{ margin: '4px 0 0 0', fontSize: '1.25rem', fontWeight: 700, color: 'var(--text-primary)' }}>
-                {activeIncident.title}
-              </h1>
-            </div>
-
-            <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-              <button 
-                onClick={handleSubmitSignoff} 
-                className="btn btn-primary"
-                style={{ background: 'var(--accent-cyan)', border: 'none', fontSize: '0.8rem', padding: '8px 16px' }}
-              >
-                Submit Investigation for Sign-off
-              </button>
+            {/* Left: Close Button & Incident Title */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '16px', textAlign: 'left' }}>
               <button 
                 onClick={() => setSelectedIncidentId(null)}
                 style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                title="Close Focus Workspace"
               >
-                <X size={24} />
+                <X size={22} />
+              </button>
+              
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <span style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--accent-cyan)' }}>
+                    {activeIncident.incidentNumber}
+                  </span>
+                  <span style={{ fontSize: '0.72rem', background: '#f1f5f9', color: 'var(--text-muted)', padding: '2px 8px', borderRadius: '4px', fontWeight: 600 }}>
+                    {activeIncident.site}
+                  </span>
+                </div>
+                <h1 style={{ margin: '2px 0 0 0', fontSize: '1.15rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+                  {activeIncident.title}
+                </h1>
+              </div>
+            </div>
+
+            {/* Center: Metadata Badges Bar */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '18px' }}>
+              
+              <div style={{ display: 'flex', flexDirection: 'column', textAlign: 'left' }}>
+                <span style={{ fontSize: '0.66rem', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase' }}>Lead Investigator</span>
+                <span style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-primary)' }}>
+                  {activeIncident.investigation?.leadInvestigator || 'Unassigned'}
+                </span>
+              </div>
+
+              <div style={{ height: '22px', width: '1px', background: 'var(--border-color)' }} />
+
+              <div style={{ display: 'flex', flexDirection: 'column', textAlign: 'left' }}>
+                <span style={{ fontSize: '0.66rem', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase' }}>Target Completion</span>
+                <span style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-primary)' }}>
+                  {activeIncident.investigation?.targetCompletionDate ? new Date(activeIncident.investigation.targetCompletionDate).toLocaleDateString() : 'Not set'}
+                </span>
+              </div>
+
+              <div style={{ height: '22px', width: '1px', background: 'var(--border-color)' }} />
+
+              <div style={{ display: 'flex', flexDirection: 'column', textAlign: 'left' }}>
+                <span style={{ fontSize: '0.66rem', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase' }}>Risk Rating</span>
+                <span style={{
+                  fontSize: '0.72rem',
+                  fontWeight: 700,
+                  padding: '2px 8px',
+                  borderRadius: '4px',
+                  background: activeIncident.riskRating === 'Critical' || activeIncident.riskRating === 'Major' ? 'rgba(239, 68, 68, 0.1)' : 'rgba(245, 158, 11, 0.1)',
+                  color: activeIncident.riskRating === 'Critical' || activeIncident.riskRating === 'Major' ? 'var(--accent-red)' : 'var(--accent-gold)'
+                }}>
+                  {activeIncident.riskRating || 'Moderate'}
+                </span>
+              </div>
+
+              <div style={{ height: '22px', width: '1px', background: 'var(--border-color)' }} />
+
+              <div style={{ display: 'flex', flexDirection: 'column', textAlign: 'left' }}>
+                <span style={{ fontSize: '0.66rem', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase' }}>Active Stage</span>
+                <span style={{ fontSize: '0.74rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--accent-cyan)' }}>
+                  {getIncidentStage(activeIncident).replace('-', ' ')}
+                </span>
+              </div>
+
+            </div>
+
+            {/* Right: Submit Button */}
+            <div>
+              <button 
+                onClick={handleSubmitSignoff} 
+                className="btn btn-primary"
+                style={{ background: 'var(--accent-cyan)', border: 'none', fontSize: '0.8rem', padding: '8px 16px', fontWeight: 600 }}
+              >
+                Submit Investigation for Sign-off
               </button>
             </div>
           </div>
 
-          {/* Workspace Body Split */}
-          <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
-            
-            {/* Left Drawer / Panel: General Details */}
-            <div style={{
-              width: '320px',
-              borderRight: '1px solid var(--border-color)',
-              background: '#ffffff',
-              padding: '24px',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '20px',
-              textAlign: 'left',
-              overflowY: 'auto'
-            }}>
-              <div>
-                <h3 style={{ fontSize: '0.82rem', textTransform: 'uppercase', color: 'var(--text-muted)', margin: '0 0 8px 0', letterSpacing: '0.5px' }}>Investigation Overview</h3>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                  
-                  <div>
-                    <span style={{ display: 'block', fontSize: '0.7rem', color: 'var(--text-muted)' }}>Lead Investigator</span>
-                    <span style={{ fontSize: '0.84rem', fontWeight: 600, color: 'var(--text-primary)' }}>{activeIncident.investigation?.leadInvestigator || 'Unassigned'}</span>
-                  </div>
-
-                  <div>
-                    <span style={{ display: 'block', fontSize: '0.7rem', color: 'var(--text-muted)' }}>Target Completion Date</span>
-                    <span style={{ fontSize: '0.84rem', fontWeight: 600, color: 'var(--text-primary)' }}>
-                      {activeIncident.investigation?.targetCompletionDate ? new Date(activeIncident.investigation.targetCompletionDate).toLocaleDateString() : 'Not set'}
-                    </span>
-                  </div>
-
-                  <div>
-                    <span style={{ display: 'block', fontSize: '0.7rem', color: 'var(--text-muted)' }}>Incident Risk Rating</span>
-                    <span style={{ fontSize: '0.84rem', fontWeight: 700, color: activeIncident.riskRating === 'Critical' || activeIncident.riskRating === 'Major' ? 'var(--accent-red)' : 'var(--accent-gold)' }}>
-                      {activeIncident.riskRating || 'Moderate'}
-                    </span>
-                  </div>
-
-                  <div>
-                    <span style={{ display: 'block', fontSize: '0.7rem', color: 'var(--text-muted)' }}>Workflow Stage</span>
-                    <span style={{ fontSize: '0.84rem', fontWeight: 600, textTransform: 'capitalize', color: 'var(--accent-cyan)' }}>
-                      {getIncidentStage(activeIncident).replace('-', ' ')}
-                    </span>
-                  </div>
-
-                </div>
-              </div>
-
-              <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: '16px' }}>
-                <h3 style={{ fontSize: '0.82rem', textTransform: 'uppercase', color: 'var(--text-muted)', margin: '0 0 10px 0', letterSpacing: '0.5px' }}>Investigation Checklist</h3>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  {activeIncident.investigation?.checklist?.map((item, idx) => (
-                    <label key={idx} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.78rem', cursor: 'pointer' }}>
-                      <input 
-                        type="checkbox" 
-                        checked={item.completed}
-                        onChange={(e) => {
-                          const list = [...activeIncident.investigation.checklist];
-                          list[idx].completed = e.target.checked;
-                          updateInvestigationDetails(activeIncident.id, { checklist: list }, currentUser.name);
-                        }}
-                      />
-                      <span style={{ color: item.completed ? 'var(--text-muted)' : 'var(--text-primary)', textDecoration: item.completed ? 'line-through' : 'none' }}>
-                        {item.task}
-                      </span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            {/* Main Interactive Screen Area */}
-            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+          {/* Full-Width Workspace Main Body */}
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
               
               {/* Tab Strip */}
               <div style={{ display: 'flex', background: '#ffffff', borderBottom: '1px solid var(--border-color)', padding: '0 32px' }}>
@@ -1272,7 +1257,6 @@ const InvestigationHub = ({ onSelectIncident }) => {
                 )}
 
               </div>
-            </div>
 
           </div>
         </div>
