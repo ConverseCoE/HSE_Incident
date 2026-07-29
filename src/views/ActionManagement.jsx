@@ -12,6 +12,7 @@ import {
   Check, 
   X, 
   ChevronRight,
+  ChevronLeft,
   Kanban,
   Table as TableIcon,
   UserCheck,
@@ -345,6 +346,9 @@ const ActionManagement = ({ onSelectIncident }) => {
                   ) : (
                     colActions.map(act => {
                       const isCA = act.type !== 'Preventive';
+                      const isOwner = act.owner === currentUser.name;
+                      const hasPendingExt = act.extensionRequests?.some(r => r.status === 'Pending');
+
                       return (
                         <div
                           key={act.id}
@@ -423,26 +427,44 @@ const ActionManagement = ({ onSelectIncident }) => {
                           </div>
 
                           {/* Card Action Quick Controls */}
-                          {act.owner === currentUser.name && (
-                            <div style={{ display: 'flex', gap: '6px', marginTop: '2px' }}>
-                              {act.status === 'Assigned' && (
-                                <button 
-                                  onClick={(e) => { e.stopPropagation(); handleAccept(act); }}
-                                  style={{ flex: 1, padding: '4px', fontSize: '0.7rem', background: 'var(--accent-green)', color: 'white', border: 'none', borderRadius: '4px', fontWeight: 600, cursor: 'pointer' }}
-                                >
-                                  Accept Action
-                                </button>
-                              )}
-                              {(act.status === 'Accepted' || act.status === 'In progress' || act.status === 'In Progress') && (
+                          <div style={{ display: 'flex', gap: '6px', marginTop: '2px' }}>
+                            {isOwner && act.status === 'Assigned' && (
+                              <button 
+                                onClick={(e) => { e.stopPropagation(); handleAccept(act); }}
+                                style={{ flex: 1, padding: '5px', fontSize: '0.7rem', background: 'var(--accent-green)', color: 'white', border: 'none', borderRadius: '4px', fontWeight: 600, cursor: 'pointer' }}
+                              >
+                                Accept Action
+                              </button>
+                            )}
+
+                            {isOwner && (act.status === 'Accepted' || act.status === 'In progress' || act.status === 'In Progress') && (
+                              <>
                                 <button 
                                   onClick={(e) => { e.stopPropagation(); handleSelectAction(act, 'progress'); }}
                                   style={{ flex: 1, padding: '5px', fontSize: '0.7rem', background: 'var(--accent-cyan)', color: 'white', border: 'none', borderRadius: '4px', fontWeight: 600, cursor: 'pointer' }}
                                 >
                                   Update Progress
                                 </button>
-                              )}
-                            </div>
-                          )}
+                                <button 
+                                  onClick={(e) => { e.stopPropagation(); handleSelectAction(act, 'extend'); }}
+                                  style={{ padding: '5px 8px', fontSize: '0.7rem', background: '#ffffff', color: 'var(--accent-gold)', border: '1px solid var(--accent-gold)', borderRadius: '4px', fontWeight: 600, cursor: 'pointer' }}
+                                  title="Request Due Date Extension"
+                                >
+                                  📅 Extend
+                                </button>
+                              </>
+                            )}
+
+                            {hasPendingExt && hasRole([roles.HSE_MANAGER, roles.ADMIN]) && (
+                              <button 
+                                onClick={(e) => { e.stopPropagation(); handleSelectAction(act, 'resolve'); }}
+                                style={{ flex: 1, padding: '5px', fontSize: '0.7rem', background: 'var(--accent-gold)', color: 'white', border: 'none', borderRadius: '4px', fontWeight: 600, cursor: 'pointer' }}
+                              >
+                                Resolve Extension
+                              </button>
+                            )}
+                          </div>
+
                         </div>
                       );
                     })
@@ -483,6 +505,9 @@ const ActionManagement = ({ onSelectIncident }) => {
                 <tbody>
                   {filteredActions.map(act => {
                     const isCA = act.type !== 'Preventive';
+                    const isOwner = act.owner === currentUser.name;
+                    const hasPendingExt = act.extensionRequests?.some(r => r.status === 'Pending');
+
                     return (
                       <tr 
                         key={act.id} 
@@ -530,15 +555,35 @@ const ActionManagement = ({ onSelectIncident }) => {
                         </td>
                         <td>
                           <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-                            {act.owner === currentUser.name && (act.status === 'Accepted' || act.status === 'In progress' || act.status === 'In Progress') && (
+                            {isOwner && (act.status === 'Accepted' || act.status === 'In progress' || act.status === 'In Progress') && (
+                              <>
+                                <button 
+                                  onClick={(e) => { e.stopPropagation(); handleSelectAction(act, 'progress'); }}
+                                  className="btn btn-primary" 
+                                  style={{ padding: '4px 8px', fontSize: '0.72rem', background: 'var(--accent-cyan)', border: 'none' }}
+                                >
+                                  Update Progress
+                                </button>
+                                <button 
+                                  onClick={(e) => { e.stopPropagation(); handleSelectAction(act, 'extend'); }}
+                                  className="btn btn-secondary" 
+                                  style={{ padding: '4px 8px', fontSize: '0.72rem', color: 'var(--accent-gold)', borderColor: 'var(--accent-gold)' }}
+                                >
+                                  📅 Extend
+                                </button>
+                              </>
+                            )}
+
+                            {hasPendingExt && hasRole([roles.HSE_MANAGER, roles.ADMIN]) && (
                               <button 
-                                onClick={(e) => { e.stopPropagation(); handleSelectAction(act, 'progress'); }}
-                                className="btn btn-primary" 
-                                style={{ padding: '4px 8px', fontSize: '0.72rem', background: 'var(--accent-cyan)', border: 'none' }}
+                                onClick={(e) => { e.stopPropagation(); handleSelectAction(act, 'resolve'); }}
+                                className="btn btn-secondary" 
+                                style={{ padding: '4px 8px', fontSize: '0.72rem', background: 'var(--accent-gold)', color: 'white', border: 'none' }}
                               >
-                                Update Progress
+                                Resolve Extension
                               </button>
                             )}
+
                             <button 
                               onClick={(e) => { e.stopPropagation(); handleSelectAction(act, 'details'); }}
                               className="btn btn-secondary" 
@@ -567,7 +612,7 @@ const ActionManagement = ({ onSelectIncident }) => {
         </div>
       )}
 
-      {/* 5. SLIDING DRAWER DETAILS & EVIDENCE UPLOAD */}
+      {/* 5. SLIDING DRAWER ON LEFT SIDE */}
       {showDrawer && activeAction && (
         <div 
           style={{
@@ -579,7 +624,7 @@ const ActionManagement = ({ onSelectIncident }) => {
             background: 'rgba(15, 23, 42, 0.4)',
             backdropFilter: 'blur(4px)',
             display: 'flex',
-            justify: 'flex-end',
+            justifyContent: 'flex-start', // LEFT SIDE DRAWER POSITIONING
             zIndex: 1000
           }} 
           onClick={(e) => {
@@ -591,18 +636,18 @@ const ActionManagement = ({ onSelectIncident }) => {
           <div 
             style={{
               width: '100%',
-              maxWidth: '500px',
+              maxWidth: '520px',
               height: '100%',
               background: '#ffffff',
-              boxShadow: '-4px 0 24px rgba(15,23,42,0.15)',
+              boxShadow: '4px 0 24px rgba(15,23,42,0.15)',
               display: 'flex',
               flexDirection: 'column',
               position: 'relative',
-              animation: 'slide-in-drawer 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards'
+              animation: 'slide-in-drawer-left 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards'
             }}
           >
             {/* Drawer Header */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px 28px', borderBottom: '1px solid var(--border-color)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px 28px', borderBottom: '1px solid var(--border-color)', background: '#ffffff' }}>
               <div style={{ textAlign: 'left' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <span style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: 'var(--accent-cyan)', fontWeight: 700 }}>
@@ -620,7 +665,7 @@ const ActionManagement = ({ onSelectIncident }) => {
                   </span>
                 </div>
                 <h3 style={{ margin: '4px 0 0 0', fontSize: '1.15rem', fontWeight: 700, color: 'var(--text-primary)' }}>
-                  {drawerMode === 'progress' && 'Update Action Progress & Evidence'}
+                  {drawerMode === 'progress' && 'Update Progress & Evidence'}
                   {drawerMode === 'extend' && 'Request Due Date Extension'}
                   {drawerMode === 'resolve' && 'Resolve Extension Request'}
                   {drawerMode === 'details' && 'Action Item Details'}
@@ -628,10 +673,84 @@ const ActionManagement = ({ onSelectIncident }) => {
               </div>
               <button 
                 onClick={() => setShowDrawer(false)}
-                style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                title="Close Drawer"
               >
-                <X size={20} />
+                <X size={22} />
               </button>
+            </div>
+
+            {/* Mode Selector Strip inside Drawer */}
+            <div style={{ display: 'flex', borderBottom: '1px solid var(--border-color)', background: '#f8fafc', padding: '6px 20px', gap: '8px' }}>
+              <button
+                onClick={() => setDrawerMode('details')}
+                style={{
+                  background: drawerMode === 'details' ? 'var(--accent-cyan)' : 'transparent',
+                  color: drawerMode === 'details' ? '#ffffff' : 'var(--text-secondary)',
+                  border: 'none',
+                  padding: '6px 12px',
+                  borderRadius: '6px',
+                  fontSize: '0.74rem',
+                  fontWeight: 600,
+                  cursor: 'pointer'
+                }}
+              >
+                Details
+              </button>
+              
+              {activeAction.owner === currentUser.name && (
+                <>
+                  <button
+                    onClick={() => setDrawerMode('progress')}
+                    style={{
+                      background: drawerMode === 'progress' ? 'var(--accent-cyan)' : 'transparent',
+                      color: drawerMode === 'progress' ? '#ffffff' : 'var(--text-secondary)',
+                      border: 'none',
+                      padding: '6px 12px',
+                      borderRadius: '6px',
+                      fontSize: '0.74rem',
+                      fontWeight: 600,
+                      cursor: 'pointer'
+                    }}
+                  >
+                    Update Progress
+                  </button>
+
+                  <button
+                    onClick={() => setDrawerMode('extend')}
+                    style={{
+                      background: drawerMode === 'extend' ? 'var(--accent-gold)' : 'transparent',
+                      color: drawerMode === 'extend' ? '#ffffff' : 'var(--text-secondary)',
+                      border: 'none',
+                      padding: '6px 12px',
+                      borderRadius: '6px',
+                      fontSize: '0.74rem',
+                      fontWeight: 600,
+                      cursor: 'pointer'
+                    }}
+                  >
+                    📅 Request Extension
+                  </button>
+                </>
+              )}
+
+              {activeAction.extensionRequests?.some(r => r.status === 'Pending') && hasRole([roles.HSE_MANAGER, roles.ADMIN]) && (
+                <button
+                  onClick={() => setDrawerMode('resolve')}
+                  style={{
+                    background: drawerMode === 'resolve' ? 'var(--accent-gold)' : 'transparent',
+                    color: drawerMode === 'resolve' ? '#ffffff' : 'var(--text-secondary)',
+                    border: 'none',
+                    padding: '6px 12px',
+                    borderRadius: '6px',
+                    fontSize: '0.74rem',
+                    fontWeight: 600,
+                    cursor: 'pointer'
+                  }}
+                >
+                  Resolve Extension
+                </button>
+              )}
             </div>
 
             {/* Scrollable Drawer Body */}
@@ -649,15 +768,15 @@ const ActionManagement = ({ onSelectIncident }) => {
                 <ChevronRight size={18} style={{ color: 'var(--accent-cyan)' }} />
               </div>
 
-              {/* Action Description */}
+              {/* Action Title & Description */}
               <div>
-                <h4 style={{ fontSize: '0.88rem', fontWeight: 600, color: 'var(--text-primary)', margin: '0 0 6px 0' }}>Action Title & Description</h4>
+                <h4 style={{ fontSize: '0.88rem', fontWeight: 600, color: 'var(--text-primary)', margin: '0 0 6px 0' }}>Action Title & Remediation Task</h4>
                 <p style={{ fontSize: '0.84rem', color: 'var(--text-secondary)', margin: 0, lineHeight: '1.4' }}>
                   {activeAction.title}
                 </p>
               </div>
 
-              {/* Owner Info & Details List */}
+              {/* Owner Info & Details Grid */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', background: '#f8fafc', padding: '14px', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
                 <div>
                   <span style={{ display: 'block', fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase' }}>Assigned Owner</span>
@@ -679,10 +798,10 @@ const ActionManagement = ({ onSelectIncident }) => {
                 </div>
               </div>
 
-              {/* Progress Update Slider (Only in progress mode) */}
+              {/* MODE 1: PROGRESS UPDATE FORM */}
               {drawerMode === 'progress' && activeAction.owner === currentUser.name && (
-                <div style={{ background: '#f8fafc', padding: '16px', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
-                  <label className="form-label" style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 600 }}>
+                <div style={{ background: '#f8fafc', padding: '18px', borderRadius: '8px', border: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                  <label className="form-label" style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 600, margin: 0 }}>
                     <span>Remediation Progress</span>
                     <strong style={{ color: 'var(--accent-cyan)', fontSize: '0.9rem' }}>{progress}%</strong>
                   </label>
@@ -693,12 +812,12 @@ const ActionManagement = ({ onSelectIncident }) => {
                     step="10"
                     value={progress} 
                     onChange={(e) => setProgress(e.target.value)} 
-                    style={{ width: '100%', marginTop: '8px', cursor: 'pointer', accentColor: 'var(--accent-cyan)' }}
+                    style={{ width: '100%', cursor: 'pointer', accentColor: 'var(--accent-cyan)' }}
                   />
                   
                   {parseInt(progress, 10) === 100 && (
                     <>
-                      <div className="form-group" style={{ marginTop: '16px' }}>
+                      <div className="form-group" style={{ margin: 0 }}>
                         <label className="form-label">Remediation Evidence Description *</label>
                         <textarea 
                           value={evidence}
@@ -710,7 +829,7 @@ const ActionManagement = ({ onSelectIncident }) => {
                         />
                       </div>
 
-                      <div className="form-group" style={{ marginTop: '12px' }}>
+                      <div className="form-group" style={{ margin: 0 }}>
                         <label className="form-label">Attach Photo & PDF Proof *</label>
                         <div 
                           style={{
@@ -741,37 +860,77 @@ const ActionManagement = ({ onSelectIncident }) => {
                     </>
                   )}
 
-                  <button onClick={handleUpdateProgress} className="btn btn-primary" style={{ width: '100%', marginTop: '14px', fontSize: '0.82rem', background: 'var(--accent-cyan)', border: 'none' }}>
+                  <button onClick={handleUpdateProgress} className="btn btn-primary" style={{ width: '100%', marginTop: '4px', fontSize: '0.82rem', background: 'var(--accent-cyan)', border: 'none' }}>
                     Save & Update Action Progress
                   </button>
                 </div>
               )}
 
-              {/* Progress Update Read-Only Details */}
-              {(drawerMode === 'details' || drawerMode === 'resolve') && (
-                <div style={{ background: '#f8fafc', padding: '16px', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
-                  <span style={{ fontSize: '0.74rem', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase', display: 'block' }}>Status Details</span>
-                  <p style={{ fontSize: '0.86rem', fontWeight: 600, marginTop: '4px', margin: 0 }}>
+              {/* MODE 2: REQUEST DUE DATE EXTENSION FORM */}
+              {drawerMode === 'extend' && activeAction.owner === currentUser.name && (
+                <form onSubmit={handleRequestExt} style={{ background: '#f8fafc', padding: '18px', borderRadius: '8px', border: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                  <h4 style={{ fontSize: '0.88rem', fontWeight: 700, margin: 0, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <Calendar size={16} style={{ color: 'var(--accent-gold)' }} />
+                    Request Due-Date Extension
+                  </h4>
+                  
+                  <div className="form-group" style={{ margin: 0 }}>
+                    <label className="form-label">New Proposed Due Date *</label>
+                    <input type="date" value={extDate} onChange={(e) => setExtDate(e.target.value)} className="form-control" style={{ fontSize: '0.82rem' }} required />
+                  </div>
+
+                  <div className="form-group" style={{ margin: 0 }}>
+                    <label className="form-label">Reason for Delay *</label>
+                    <input type="text" value={extReason} onChange={(e) => setExtReason(e.target.value)} className="form-control" style={{ fontSize: '0.82rem' }} placeholder="Delayed parts delivery, technical review..." required />
+                  </div>
+
+                  <div className="form-group" style={{ margin: 0 }}>
+                    <label className="form-label">Interim Safe Controls Put in Place</label>
+                    <input type="text" value={extControls} onChange={(e) => setExtControls(e.target.value)} className="form-control" style={{ fontSize: '0.82rem' }} placeholder="Equipped backup locks, daily watch log..." />
+                  </div>
+
+                  <button type="submit" className="btn btn-primary" style={{ width: '100%', fontSize: '0.82rem', background: 'var(--accent-gold)', border: 'none' }}>
+                    Submit Extension Request for Manager Approval
+                  </button>
+                </form>
+              )}
+
+              {/* MODE 3: READ-ONLY DETAILS VIEW */}
+              {drawerMode === 'details' && (
+                <div style={{ background: '#f8fafc', padding: '16px', borderRadius: '8px', border: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  <span style={{ fontSize: '0.74rem', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase', display: 'block' }}>Status & Evidence Log</span>
+                  <p style={{ fontSize: '0.86rem', fontWeight: 600, margin: 0 }}>
                     Currently <strong style={{ color: 'var(--accent-cyan)' }}>{activeAction.status}</strong> at {activeAction.progress}% progress.
                   </p>
                   {activeAction.completionEvidence && (
-                    <div style={{ marginTop: '10px', fontSize: '0.8rem', background: '#ffffff', padding: '10px', borderRadius: '6px', border: '1px solid var(--border-color)' }}>
+                    <div style={{ marginTop: '4px', fontSize: '0.8rem', background: '#ffffff', padding: '10px', borderRadius: '6px', border: '1px solid var(--border-color)' }}>
                       <strong>Evidence Log:</strong> {activeAction.completionEvidence}
                     </div>
+                  )}
+
+                  {/* Extension Quick Button if Owner */}
+                  {activeAction.owner === currentUser.name && (
+                    <button
+                      onClick={() => setDrawerMode('extend')}
+                      className="btn btn-secondary"
+                      style={{ marginTop: '8px', fontSize: '0.78rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', color: 'var(--accent-gold)', borderColor: 'var(--accent-gold)' }}
+                    >
+                      <Calendar size={14} /> Request Due-Date Extension
+                    </button>
                   )}
                 </div>
               )}
 
-              {/* Extensions Requests section */}
-              {(drawerMode === 'extend' || drawerMode === 'resolve' || (drawerMode === 'details' && activeAction.extensionRequests?.length > 0)) && (
+              {/* Extensions Requests Log section */}
+              {activeAction.extensionRequests?.length > 0 && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', borderTop: '1px solid var(--border-color)', paddingTop: '16px' }}>
-                  <h4 style={{ fontSize: '0.92rem', fontWeight: 600, color: 'var(--text-primary)', margin: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <h4 style={{ fontSize: '0.88rem', fontWeight: 700, color: 'var(--text-primary)', margin: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <Calendar size={16} style={{ color: 'var(--accent-gold)' }} />
-                    Due-Date Extensions
+                    Submitted Extension Requests ({activeAction.extensionRequests.length})
                   </h4>
 
                   {/* Show active requests */}
-                  {activeAction.extensionRequests?.map(req => {
+                  {activeAction.extensionRequests.map(req => {
                     const showResolveButtons = drawerMode === 'resolve' && req.status === 'Pending' && hasRole([roles.HSE_MANAGER, roles.ADMIN]);
                     return (
                       <div 
@@ -801,28 +960,6 @@ const ActionManagement = ({ onSelectIncident }) => {
                       </div>
                     );
                   })}
-
-                  {/* Request Extension Form */}
-                  {drawerMode === 'extend' && activeAction.owner === currentUser.name && (
-                    <form onSubmit={handleRequestExt} style={{ background: '#f8fafc', padding: '16px', borderRadius: '8px', border: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                      <span style={{ fontSize: '0.8rem', fontWeight: 600, display: 'block' }}>Request Due Date Extension</span>
-                      <div className="form-group" style={{ margin: 0 }}>
-                        <label className="form-label">New Target Due Date *</label>
-                        <input type="date" value={extDate} onChange={(e) => setExtDate(e.target.value)} className="form-control" style={{ fontSize: '0.82rem' }} required />
-                      </div>
-                      <div className="form-group" style={{ margin: 0 }}>
-                        <label className="form-label">Reason *</label>
-                        <input type="text" value={extReason} onChange={(e) => setExtReason(e.target.value)} className="form-control" style={{ fontSize: '0.82rem' }} placeholder="Delayed parts delivery, technical review..." required />
-                      </div>
-                      <div className="form-group" style={{ margin: 0 }}>
-                        <label className="form-label">Interim Safe Controls</label>
-                        <input type="text" value={extControls} onChange={(e) => setExtControls(e.target.value)} className="form-control" style={{ fontSize: '0.82rem' }} placeholder="Equipped backup locks, daily watch log..." />
-                      </div>
-                      <button type="submit" className="btn btn-secondary" style={{ width: '100%', fontSize: '0.8rem', marginTop: '4px' }}>
-                        Submit Extension Request
-                      </button>
-                    </form>
-                  )}
                 </div>
               )}
 
