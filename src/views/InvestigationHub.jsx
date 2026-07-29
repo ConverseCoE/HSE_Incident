@@ -211,114 +211,10 @@ const InvestigationHub = ({ onSelectIncident }) => {
   };
 
   return (
-    <div className="investigation-hub animate-fade" style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
+    <div className="investigation-hub animate-fade" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
       
-      {/* SECTION A: COMMAND CENTER (KPI DASHBOARD) */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px' }}>
-        
-        {/* KPI 1 */}
-        <div style={{
-          background: '#ffffff',
-          borderRadius: '12px',
-          padding: '20px 24px',
-          border: '1px solid var(--border-color)',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '6px',
-          textAlign: 'left'
-        }}>
-          <span style={{ fontSize: '0.74rem', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.6px' }}>
-            Active Investigations
-          </span>
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
-            <span style={{ fontSize: '1.8rem', fontWeight: 700, color: 'var(--text-primary)' }}>
-              {activeInvestigations.length}
-            </span>
-            <span style={{ fontSize: '0.76rem', color: 'var(--text-muted)' }}>cases open</span>
-          </div>
-        </div>
-
-        {/* KPI 2 */}
-        <div style={{
-          background: '#ffffff',
-          borderRadius: '12px',
-          padding: '20px 24px',
-          border: '1px solid var(--border-color)',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '6px',
-          textAlign: 'left'
-        }}>
-          <span style={{ fontSize: '0.74rem', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.6px' }}>
-            RCA Completion Rate
-          </span>
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
-            <span style={{ fontSize: '1.8rem', fontWeight: 700, color: 'var(--accent-cyan)' }}>
-              {rcaCompletionRate}%
-            </span>
-            <span style={{ fontSize: '0.76rem', color: 'var(--text-muted)' }}>analyzed</span>
-          </div>
-        </div>
-
-        {/* KPI 3 */}
-        <div style={{
-          background: '#ffffff',
-          borderRadius: '12px',
-          padding: '20px 24px',
-          border: '1px solid var(--border-color)',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '6px',
-          textAlign: 'left'
-        }}>
-          <span style={{ fontSize: '0.74rem', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.6px' }}>
-            CAPA Velocity
-          </span>
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
-            <span style={{ fontSize: '1.8rem', fontWeight: 700, color: 'var(--accent-gold)' }}>
-              4.2 Days
-            </span>
-            <span style={{ fontSize: '0.76rem', color: 'var(--text-muted)' }}>avg define time</span>
-          </div>
-        </div>
-
-        {/* KPI 4 */}
-        <div style={{
-          background: '#ffffff',
-          borderRadius: '12px',
-          padding: '20px 24px',
-          border: '1px solid var(--border-color)',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '6px',
-          textAlign: 'left'
-        }}>
-          <span style={{ fontSize: '0.74rem', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.6px' }}>
-            Overdue Milestones
-          </span>
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
-            <span style={{ fontSize: '1.8rem', fontWeight: 700, color: overdueCount > 0 ? 'var(--accent-red)' : 'var(--text-primary)' }}>
-              {overdueCount}
-            </span>
-            <span style={{ fontSize: '0.76rem', color: overdueCount > 0 ? 'var(--accent-red)' : 'var(--text-muted)', fontWeight: 600 }}>
-              {overdueCount > 0 ? 'Urgent Action' : 'On Track'}
-            </span>
-          </div>
-        </div>
-
-      </div>
-
-      {/* SECTION B: THE WORKFLOW BOARD (KANBAN BOARD) */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', textAlign: 'left' }}>
-        <div>
-          <h2 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-primary)', margin: '0 0 4px 0' }}>Visual Investigation Workflow Board</h2>
-          <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', margin: 0 }}>
-            Click on any card to access the specialized timeline, RCA sandbox, and CAPA definition workspaces.
-          </p>
-        </div>
-
-        {/* Board Columns Grid */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', alignItems: 'stretch', minHeight: '400px' }}>
+      {/* Board Columns Grid */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', alignItems: 'stretch', minHeight: '400px' }}>
           {columns.map(col => {
             // Get incidents in this column stage
             const colIncidents = activeIncidents.filter(inc => getIncidentStage(inc) === col.id);
@@ -476,7 +372,6 @@ const InvestigationHub = ({ onSelectIncident }) => {
             );
           })}
         </div>
-      </div>
 
       {/* SECTION C: COLLABORATIVE WORKSPACE FOCUS OVERLAY */}
       {selectedIncidentId && activeIncident && (
