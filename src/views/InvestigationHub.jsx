@@ -75,6 +75,37 @@ const InvestigationHub = ({ onSelectIncident }) => {
     return 'fact-finding';
   };
 
+  const getStepProgress = (inc) => {
+    if (inc.status === 'Pending Approval') {
+      return { step: 7, total: 7, label: '7/7: Review & Sign-off', pct: 100 };
+    }
+    
+    const stage = getIncidentStage(inc);
+    if (stage === 'fact-finding') {
+      const timelineEvents = getTimelineEvents(inc);
+      if (timelineEvents && timelineEvents.length > 1) {
+        return { step: 3, total: 7, label: '3/7: Timeline Builder', pct: 43 };
+      }
+      if (inc.witnesses && inc.witnesses.length > 0) {
+        return { step: 2, total: 7, label: '2/7: Evidence & Witnessing', pct: 28 };
+      }
+      return { step: 1, total: 7, label: '1/7: Scope & Setup', pct: 14 };
+    }
+
+    if (stage === 'rca-phase') {
+      if (inc.investigation?.barrierAnalysis && inc.investigation.barrierAnalysis.length > 0) {
+        return { step: 5, total: 7, label: '5/7: Barrier Safeguard Audit', pct: 71 };
+      }
+      return { step: 4, total: 7, label: '4/7: Root Cause Analysis', pct: 57 };
+    }
+
+    if (stage === 'capa-design') {
+      return { step: 6, total: 7, label: '6/7: CAPA Mapping', pct: 85 };
+    }
+
+    return { step: 1, total: 7, label: '1/7: Scope & Setup', pct: 14 };
+  };
+
   const columns = [
     { id: 'fact-finding', title: 'Fact Finding', description: 'Evidence gathering & checklists' },
     { id: 'rca-phase', title: 'RCA Phase', description: 'Causal mapping & Five Whys' },
@@ -85,7 +116,7 @@ const InvestigationHub = ({ onSelectIncident }) => {
   // Helper to open workspace overlay
   const handleOpenWorkspace = (inc) => {
     setSelectedIncidentId(inc.id);
-    setActiveWorkspaceTab('timeline');
+    setActiveWorkspaceTab('scope');
     
     // Initialize Five Whys input states
     const inv = inc.investigation;
@@ -387,18 +418,25 @@ const InvestigationHub = ({ onSelectIncident }) => {
                             {inc.title}
                           </h4>
 
-                          {/* Progress indicator */}
-                          {inc.status === 'Under Investigation' && (
-                            <div style={{ marginTop: '4px' }}>
-                              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.64rem', color: 'var(--text-muted)', marginBottom: '2px' }}>
-                                <span>Checklist Progress</span>
-                                <span>{checklistPct}%</span>
+                          {/* 7-Step Progress Indicator Badge */}
+                          {(() => {
+                            const sp = getStepProgress(inc);
+                            return (
+                              <div style={{ marginTop: '4px' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.66rem', marginBottom: '4px' }}>
+                                  <span style={{ fontWeight: 700, color: 'var(--accent-cyan)' }}>
+                                    Step {sp.step} of {sp.total}
+                                  </span>
+                                  <span style={{ fontSize: '0.64rem', color: 'var(--text-muted)', fontWeight: 500 }}>
+                                    {sp.label.split(':')[1]}
+                                  </span>
+                                </div>
+                                <div style={{ width: '100%', height: '4px', background: '#e2e8f0', borderRadius: '2px', overflow: 'hidden' }}>
+                                  <div style={{ width: `${sp.pct}%`, height: '100%', background: 'var(--accent-cyan)', borderRadius: '2px', transition: 'width 0.3s ease' }} />
+                                </div>
                               </div>
-                              <div style={{ width: '100%', height: '4px', background: '#e2e8f0', borderRadius: '2px', overflow: 'hidden' }}>
-                                <div style={{ width: `${checklistPct}%`, height: '100%', background: 'var(--accent-cyan)' }} />
-                              </div>
-                            </div>
-                          )}
+                            );
+                          })()}
 
                           {/* Investigator / Due Date info */}
                           <div style={{
