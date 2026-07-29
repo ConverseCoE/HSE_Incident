@@ -4,7 +4,7 @@ import { useUser } from '../context/UserContext';
 import { 
   ShieldAlert, AlertCircle, CheckSquare, Calendar, ChevronRight, 
   ClipboardList, Plus, Trash, Save, ArrowDown, X, Activity, 
-  FileText, Check, Settings, Users, Shield, Award 
+  FileText, Check, Settings, Users, Shield, Award, HelpCircle, Info
 } from 'lucide-react';
 
 const InvestigationHub = ({ onSelectIncident }) => {
@@ -15,6 +15,7 @@ const InvestigationHub = ({ onSelectIncident }) => {
   const [selectedIncidentId, setSelectedIncidentId] = useState(null);
   const [activeWorkspaceTab, setActiveWorkspaceTab] = useState('timeline'); // timeline | rca | capa
   const [rcaDiagramMode, setRcaDiagramMode] = useState('fiveWhys'); // fiveWhys | fishbone
+  const [showRcaInfoDrawer, setShowRcaInfoDrawer] = useState(false);
 
   // Local state for workspace inputs
   const [newTimelineEvent, setNewTimelineEvent] = useState({ time: '', description: '', severity: 'info' });
@@ -655,38 +656,61 @@ const InvestigationHub = ({ onSelectIncident }) => {
                     
                     {/* Sandbox Mode Selector */}
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <div style={{ display: 'flex', gap: '10px', background: '#f1f5f9', padding: '4px', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
-                        <button
-                          onClick={() => setRcaDiagramMode('fiveWhys')}
-                          style={{
-                            background: rcaDiagramMode === 'fiveWhys' ? '#ffffff' : 'transparent',
-                            border: 'none',
-                            padding: '6px 14px',
-                            fontSize: '0.8rem',
-                            fontWeight: 600,
-                            color: rcaDiagramMode === 'fiveWhys' ? 'var(--text-primary)' : 'var(--text-secondary)',
-                            borderRadius: '6px',
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <div style={{ display: 'flex', gap: '8px', background: '#f1f5f9', padding: '4px', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
+                          <button
+                            onClick={() => setRcaDiagramMode('fiveWhys')}
+                            style={{
+                              background: rcaDiagramMode === 'fiveWhys' ? '#ffffff' : 'transparent',
+                              border: 'none',
+                              padding: '6px 14px',
+                              fontSize: '0.8rem',
+                              fontWeight: 600,
+                              color: rcaDiagramMode === 'fiveWhys' ? 'var(--text-primary)' : 'var(--text-secondary)',
+                              borderRadius: '6px',
+                              cursor: 'pointer',
+                              boxShadow: rcaDiagramMode === 'fiveWhys' ? '0 1px 3px rgba(0,0,0,0.05)' : 'none'
+                            }}
+                          >
+                            Five Whys Tree
+                          </button>
+                          <button
+                            onClick={() => setRcaDiagramMode('fishbone')}
+                            style={{
+                              background: rcaDiagramMode === 'fishbone' ? '#ffffff' : 'transparent',
+                              border: 'none',
+                              padding: '6px 14px',
+                              fontSize: '0.8rem',
+                              fontWeight: 600,
+                              color: rcaDiagramMode === 'fishbone' ? 'var(--text-primary)' : 'var(--text-secondary)',
+                              borderRadius: '6px',
+                              cursor: 'pointer',
+                              boxShadow: rcaDiagramMode === 'fishbone' ? '0 1px 3px rgba(0,0,0,0.05)' : 'none'
+                            }}
+                          >
+                            Fishbone (Ishikawa)
+                          </button>
+                        </div>
+
+                        <button 
+                          onClick={() => setShowRcaInfoDrawer(true)} 
+                          title="Learn how to choose between Five Whys and Fishbone" 
+                          style={{ 
+                            background: 'rgba(6, 182, 212, 0.08)', 
+                            border: '1px solid rgba(6, 182, 212, 0.25)', 
+                            color: 'var(--accent-cyan)', 
+                            padding: '6px 12px', 
+                            borderRadius: '8px', 
+                            display: 'flex', 
+                            alignItems: 'center', 
+                            gap: '6px', 
+                            fontSize: '0.78rem', 
+                            fontWeight: 600, 
                             cursor: 'pointer',
-                            boxShadow: rcaDiagramMode === 'fiveWhys' ? '0 1px 3px rgba(0,0,0,0.05)' : 'none'
+                            transition: 'all 0.2s ease'
                           }}
                         >
-                          Five Whys Tree
-                        </button>
-                        <button
-                          onClick={() => setRcaDiagramMode('fishbone')}
-                          style={{
-                            background: rcaDiagramMode === 'fishbone' ? '#ffffff' : 'transparent',
-                            border: 'none',
-                            padding: '6px 14px',
-                            fontSize: '0.8rem',
-                            fontWeight: 600,
-                            color: rcaDiagramMode === 'fishbone' ? 'var(--text-primary)' : 'var(--text-secondary)',
-                            borderRadius: '6px',
-                            cursor: 'pointer',
-                            boxShadow: rcaDiagramMode === 'fishbone' ? '0 1px 3px rgba(0,0,0,0.05)' : 'none'
-                          }}
-                        >
-                          Fishbone (Ishikawa)
+                          <HelpCircle size={16} /> Guide
                         </button>
                       </div>
 
@@ -1029,6 +1053,118 @@ const InvestigationHub = ({ onSelectIncident }) => {
               </div>
             </div>
 
+          </div>
+        </div>
+      )}
+
+      {/* RCA METHODOLOGY GUIDE RIGHT DRAWER */}
+      {showRcaInfoDrawer && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100vw',
+          height: '100vh',
+          background: 'rgba(15, 23, 42, 0.4)',
+          backdropFilter: 'blur(3px)',
+          zIndex: 2000,
+          display: 'flex',
+          justifyContent: 'flex-end',
+          alignItems: 'stretch'
+        }}>
+          <div 
+            className="animate-slide-left"
+            style={{
+              width: '100%',
+              maxWidth: '480px',
+              background: '#ffffff',
+              height: '100%',
+              display: 'flex',
+              flexDirection: 'column',
+              boxShadow: '-8px 0 32px rgba(0, 0, 0, 0.15)',
+              overflowY: 'auto'
+            }}
+          >
+            {/* Drawer Header */}
+            <div style={{ padding: '24px', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#f8fafc' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: 'rgba(6, 182, 212, 0.1)', color: 'var(--accent-cyan)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <HelpCircle size={20} />
+                </div>
+                <div>
+                  <h3 style={{ fontSize: '1.05rem', fontWeight: 700, margin: 0, color: 'var(--text-primary)' }}>RCA Methodology Selection Guide</h3>
+                  <span style={{ fontSize: '0.74rem', color: 'var(--text-muted)' }}>Choose the best Root Cause Analysis tool for your incident</span>
+                </div>
+              </div>
+              <button 
+                onClick={() => setShowRcaInfoDrawer(false)}
+                style={{ border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--text-muted)', padding: '4px', borderRadius: '6px' }}
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* Drawer Content */}
+            <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '24px', textAlign: 'left' }}>
+              
+              {/* Method 1: Five Whys */}
+              <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <h4 style={{ fontSize: '0.95rem', fontWeight: 700, margin: 0, color: 'var(--accent-cyan)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <Activity size={16} /> 1. Five Whys Tree
+                  </h4>
+                  <span style={{ fontSize: '0.68rem', fontWeight: 700, background: 'rgba(6, 182, 212, 0.1)', color: 'var(--accent-cyan)', padding: '2px 8px', borderRadius: '10px' }}>Linear Drilldown</span>
+                </div>
+
+                <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', margin: 0, lineHeight: 1.5 }}>
+                  A step-by-step causal ladder that drills down sequentially through 5 levels of cause-and-effect until the fundamental systemic flaw is uncovered.
+                </p>
+
+                <div style={{ background: '#ffffff', border: '1px solid var(--border-color)', borderRadius: '8px', padding: '12px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  <span style={{ fontSize: '0.74rem', fontWeight: 700, color: 'var(--text-primary)' }}>⚡ Best Used For:</span>
+                  <ul style={{ margin: 0, paddingLeft: '18px', fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>
+                    <li>Routine workplace safety & near-miss events.</li>
+                    <li>Procedural human error or PPE compliance lapses.</li>
+                    <li>Simple equipment drops (e.g. tool slipping from harness).</li>
+                  </ul>
+                </div>
+              </div>
+
+              {/* Method 2: Fishbone */}
+              <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <h4 style={{ fontSize: '0.95rem', fontWeight: 700, margin: 0, color: 'var(--accent-purple, #8b5cf6)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <Settings size={16} /> 2. Fishbone (Ishikawa)
+                  </h4>
+                  <span style={{ fontSize: '0.68rem', fontWeight: 700, background: 'rgba(139, 92, 246, 0.1)', color: 'var(--accent-purple, #8b5cf6)', padding: '2px 8px', borderRadius: '10px' }}>Categorical Diagram</span>
+                </div>
+
+                <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', margin: 0, lineHeight: 1.5 }}>
+                  A visual cause-and-effect diagram that categorizes root cause factors across 4 core engineering bones: <strong>Manpower</strong>, <strong>Method</strong>, <strong>Material</strong>, and <strong>Environment / Machine</strong>.
+                </p>
+
+                <div style={{ background: '#ffffff', border: '1px solid var(--border-color)', borderRadius: '8px', padding: '12px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  <span style={{ fontSize: '0.74rem', fontWeight: 700, color: 'var(--text-primary)' }}>⚡ Best Used For:</span>
+                  <ul style={{ margin: 0, paddingLeft: '18px', fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>
+                    <li>Complex physical failures with multiple contributing factors.</li>
+                    <li>Thermal events, BESS container leaks, or generator failures.</li>
+                    <li>Offshore access hazards involving weather, sea state & equipment.</li>
+                  </ul>
+                </div>
+              </div>
+
+              {/* Expert Pro-Tip */}
+              <div style={{ background: 'rgba(16, 185, 129, 0.06)', border: '1px dashed var(--accent-green)', borderRadius: '12px', padding: '16px', display: 'flex', gap: '12px' }}>
+                <Shield size={20} style={{ color: 'var(--accent-green)', flexShrink: 0, marginTop: '2px' }} />
+                <div>
+                  <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--accent-green)', display: 'block' }}>HSE Expert Pro-Tip</span>
+                  <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', margin: '4px 0 0 0', lineHeight: 1.5 }}>
+                    You can start with <strong>Fishbone</strong> to brainstorm all environmental and equipment factors, then use <strong>Five Whys</strong> to isolate the exact managerial or procurement root cause!
+                  </p>
+                </div>
+              </div>
+
+            </div>
           </div>
         </div>
       )}
