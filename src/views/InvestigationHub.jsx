@@ -14,11 +14,12 @@ const InvestigationHub = ({ onSelectIncident }) => {
 
   // Active View Mode inside the Hub
   const [selectedIncidentId, setSelectedIncidentId] = useState(null);
-  const [activeWorkspaceTab, setActiveWorkspaceTab] = useState('evidence'); // evidence | timeline | rca | barriers | capa
+  const [activeWorkspaceTab, setActiveWorkspaceTab] = useState('scope'); // scope | evidence | timeline | rca | barriers | capa | signoff
   const [rcaDiagramMode, setRcaDiagramMode] = useState('fiveWhys'); // fiveWhys | fishbone
   const [showRcaInfoDrawer, setShowRcaInfoDrawer] = useState(false);
 
   // Local state for workspace inputs
+  const [scopeForm, setScopeForm] = useState({ priority: 'Medium', scope: '', rcaMethod: 'fiveWhys', customChecklistItem: '' });
   const [witnessForm, setWitnessForm] = useState({ name: '', role: '', statement: '', interviewedBy: '' });
   const [newTimelineEvent, setNewTimelineEvent] = useState({ time: '', description: '', severity: 'info' });
   const [fiveWhysData, setFiveWhysData] = useState({
@@ -31,8 +32,8 @@ const InvestigationHub = ({ onSelectIncident }) => {
     rootCause: ''
   });
   
-  // Local state for CAPA form
-  const [capaForm, setCapaForm] = useState({ title: '', owner: '', priority: 'Medium', dueDate: '' });
+  // Local state for CAPA form (with CA vs PA selection)
+  const [capaForm, setCapaForm] = useState({ title: '', owner: '', type: 'Corrective', priority: 'Medium', dueDate: '' });
 
   // 1. Calculations for Command Center (KPI Dashboard)
   const activeOrClosed = incidents.filter(inc => inc.investigation);
@@ -157,6 +158,26 @@ const InvestigationHub = ({ onSelectIncident }) => {
     updateInvestigationDetails(activeIncident.id, { timeline: updatedTimeline }, currentUser.name);
   };
 
+  const handleSaveScopeSetup = (e) => {
+    e.preventDefault();
+    if (!activeIncident) return;
+    updateInvestigationDetails(activeIncident.id, {
+      priority: scopeForm.priority,
+      scope: scopeForm.scope,
+      method: scopeForm.rcaMethod
+    }, currentUser.name);
+    alert('Investigation Scope & Setup parameters updated successfully.');
+  };
+
+  const handleAddCustomChecklistItem = (e) => {
+    e.preventDefault();
+    if (!activeIncident || !scopeForm.customChecklistItem.trim()) return;
+    const currentList = activeIncident.investigation?.checklist || [];
+    const updatedList = [...currentList, { task: scopeForm.customChecklistItem.trim(), completed: false }];
+    updateInvestigationDetails(activeIncident.id, { checklist: updatedList }, currentUser.name);
+    setScopeForm({ ...scopeForm, customChecklistItem: '' });
+  };
+
   const handleSaveRCA = () => {
     if (!activeIncident) return;
     updateInvestigationDetails(activeIncident.id, { fiveWhys: fiveWhysData }, currentUser.name);
@@ -213,6 +234,7 @@ const InvestigationHub = ({ onSelectIncident }) => {
 
     const actionData = {
       title: capaForm.title,
+      type: capaForm.type || 'Corrective',
       owner: capaForm.owner || currentUser.name,
       priority: capaForm.priority,
       dueDate: capaForm.dueDate || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
@@ -224,7 +246,7 @@ const InvestigationHub = ({ onSelectIncident }) => {
     };
 
     addCorrectiveAction(activeIncident.id, actionData, currentUser.name);
-    setCapaForm({ title: '', owner: usersList[0]?.name || '', priority: 'Medium', dueDate: '' });
+    setCapaForm({ title: '', owner: usersList[0]?.name || '', type: 'Corrective', priority: 'Medium', dueDate: '' });
   };
 
   const handleSubmitSignoff = () => {
@@ -508,12 +530,13 @@ const InvestigationHub = ({ onSelectIncident }) => {
               {/* Tab Strip */}
               <div style={{ display: 'flex', background: '#ffffff', borderBottom: '1px solid var(--border-color)', padding: '0 32px' }}>
                 {[
-                  { id: 'evidence', label: '1. Evidence & Fact-Finding' },
-                  { id: 'timeline', label: '2. Timeline Builder' },
-                  { id: 'rca', label: '3. Root Cause (5-Whys & Fishbone)' },
-                  { id: 'barriers', label: '4. Barrier Safeguard Audit' },
-                  { id: 'capa', label: '5. CAPA Action Mapping' },
-                  { id: 'signoff', label: '6. Final Review & Sign-off' }
+                  { id: 'scope', label: '1. Scope & Setup' },
+                  { id: 'evidence', label: '2. Evidence & Fact-Finding' },
+                  { id: 'timeline', label: '3. Timeline Builder' },
+                  { id: 'rca', label: '4. Root Cause (5-Whys & Fishbone)' },
+                  { id: 'barriers', label: '5. Barrier Safeguard Audit' },
+                  { id: 'capa', label: '6. CAPA Action Mapping' },
+                  { id: 'signoff', label: '7. Final Review & Sign-off' }
                 ].map(tab => (
                   <button
                     key={tab.id}
@@ -521,8 +544,8 @@ const InvestigationHub = ({ onSelectIncident }) => {
                     style={{
                       background: 'none',
                       border: 'none',
-                      padding: '16px 20px',
-                      fontSize: '0.86rem',
+                      padding: '16px 18px',
+                      fontSize: '0.84rem',
                       fontWeight: activeWorkspaceTab === tab.id ? 700 : 500,
                       color: activeWorkspaceTab === tab.id ? 'var(--accent-cyan)' : 'var(--text-secondary)',
                       borderBottom: activeWorkspaceTab === tab.id ? '3px solid var(--accent-cyan)' : '3px solid transparent',
@@ -538,7 +561,145 @@ const InvestigationHub = ({ onSelectIncident }) => {
               {/* Scrollable Work Console Container */}
               <div style={{ flex: 1, overflowY: 'auto', padding: '32px' }}>
                 
-                {/* TAB 1: EVIDENCE & FACT-FINDING */}
+                {/* TAB 1: SCOPE & SETUP */}
+                {activeWorkspaceTab === 'scope' && (
+                  <div style={{ display: 'grid', gridTemplateColumns: '1.1fr 0.9fr', gap: '32px', textAlign: 'left' }}>
+                    
+                    {/* Left Column: Scope Parameters Form */}
+                    <form onSubmit={handleSaveScopeSetup} style={{ background: '#ffffff', borderRadius: '12px', border: '1px solid var(--border-color)', padding: '28px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                      <h3 style={{ fontSize: '0.96rem', fontWeight: 700, margin: 0, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <Settings size={18} style={{ color: 'var(--accent-cyan)' }} />
+                        Investigation Scope & Method Setup
+                      </h3>
+
+                      {/* Established Metadata Notice */}
+                      <div style={{ background: '#f8fafc', padding: '14px', borderRadius: '8px', border: '1px solid var(--border-color)', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+                        <div>
+                          <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', display: 'block' }}>Lead Investigator (Established)</span>
+                          <strong style={{ fontSize: '0.84rem', color: 'var(--text-primary)' }}>{activeIncident.investigation?.leadInvestigator || 'Unassigned'}</strong>
+                        </div>
+                        <div>
+                          <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', display: 'block' }}>Target Due Date (Established)</span>
+                          <strong style={{ fontSize: '0.84rem', color: 'var(--text-primary)' }}>
+                            {activeIncident.investigation?.targetCompletionDate ? new Date(activeIncident.investigation.targetCompletionDate).toLocaleDateString() : 'Not set'}
+                          </strong>
+                        </div>
+                      </div>
+
+                      {/* Investigation Priority */}
+                      <div className="form-group" style={{ margin: 0 }}>
+                        <label className="form-label">Investigation Priority *</label>
+                        <div style={{ display: 'flex', gap: '12px' }}>
+                          {['Low', 'Medium', 'High'].map(prio => (
+                            <button
+                              key={prio}
+                              type="button"
+                              onClick={() => setScopeForm({ ...scopeForm, priority: prio })}
+                              style={{
+                                flex: 1,
+                                padding: '8px',
+                                borderRadius: '6px',
+                                border: (scopeForm.priority || activeIncident.investigation?.priority) === prio ? '2px solid var(--accent-cyan)' : '1px solid var(--border-color)',
+                                background: (scopeForm.priority || activeIncident.investigation?.priority) === prio ? 'rgba(6, 182, 212, 0.08)' : '#ffffff',
+                                color: (scopeForm.priority || activeIncident.investigation?.priority) === prio ? 'var(--accent-cyan)' : 'var(--text-secondary)',
+                                fontWeight: 700,
+                                fontSize: '0.8rem',
+                                cursor: 'pointer'
+                              }}
+                            >
+                              {prio} Priority
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* RCA Method Selector */}
+                      <div className="form-group" style={{ margin: 0 }}>
+                        <label className="form-label">Primary RCA Method for Team *</label>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                          {[
+                            { id: 'fiveWhys', title: '5 Whys Tree', desc: 'Best for standard linear incidents & procedural failures.' },
+                            { id: 'fishbone', title: 'Fishbone (Ishikawa)', desc: 'Best for multi-factorial physical & equipment failures.' },
+                            { id: 'both', title: 'Both Methods Combined', desc: 'Best for major critical incidents requiring full analysis.' }
+                          ].map(m => (
+                            <label key={m.id} style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', padding: '10px 14px', borderRadius: '8px', background: (scopeForm.rcaMethod || activeIncident.investigation?.method) === m.id ? 'rgba(6, 182, 212, 0.04)' : '#f8fafc', border: (scopeForm.rcaMethod || activeIncident.investigation?.method) === m.id ? '1px solid var(--accent-cyan)' : '1px solid var(--border-color)', cursor: 'pointer' }}>
+                              <input 
+                                type="radio" 
+                                name="rcaMethod" 
+                                checked={(scopeForm.rcaMethod || activeIncident.investigation?.method) === m.id} 
+                                onChange={() => setScopeForm({ ...scopeForm, rcaMethod: m.id })} 
+                                style={{ marginTop: '3px', accentColor: 'var(--accent-cyan)' }}
+                              />
+                              <div>
+                                <strong style={{ fontSize: '0.82rem', color: 'var(--text-primary)', display: 'block' }}>{m.title}</strong>
+                                <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{m.desc}</span>
+                              </div>
+                            </label>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Official Scope Statement */}
+                      <div className="form-group" style={{ margin: 0 }}>
+                        <label className="form-label">Official Investigation Scope Statement</label>
+                        <textarea 
+                          rows={3}
+                          placeholder="Define boundaries, components to inspect, and focus areas..." 
+                          value={scopeForm.scope || activeIncident.investigation?.scope || ''} 
+                          onChange={(e) => setScopeForm({ ...scopeForm, scope: e.target.value })}
+                          className="form-textarea"
+                        />
+                      </div>
+
+                      <button type="submit" className="btn btn-primary" style={{ background: 'var(--accent-cyan)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', marginTop: '6px' }}>
+                        <Save size={16} /> Save Scope & Setup Parameters
+                      </button>
+                    </form>
+
+                    {/* Right Column: Custom Fact-Finding Checklist Configurator */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                      <div style={{ background: '#ffffff', borderRadius: '12px', border: '1px solid var(--border-color)', padding: '28px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                        <h3 style={{ fontSize: '0.94rem', fontWeight: 700, margin: 0, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <CheckSquare size={18} style={{ color: 'var(--accent-cyan)' }} />
+                          Tailor Fact-Finding Checklist
+                        </h3>
+                        <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', margin: 0 }}>
+                          Add domain-specific checklist tasks for this incident (e.g. SCADA log exports, sea-state audit, LOTO tags).
+                        </p>
+
+                        <form onSubmit={handleAddCustomChecklistItem} style={{ display: 'flex', gap: '8px' }}>
+                          <input 
+                            type="text" 
+                            placeholder="Add custom task item..." 
+                            value={scopeForm.customChecklistItem} 
+                            onChange={(e) => setScopeForm({ ...scopeForm, customChecklistItem: e.target.value })}
+                            className="form-control"
+                            style={{ flex: 1 }}
+                            required
+                          />
+                          <button type="submit" className="btn btn-secondary" style={{ display: 'flex', alignItems: 'center', gap: '4px', whiteSpace: 'nowrap' }}>
+                            <Plus size={16} /> Add Task
+                          </button>
+                        </form>
+
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '8px' }}>
+                          <strong style={{ fontSize: '0.78rem', color: 'var(--text-primary)' }}>Configured Checklist ({activeIncident.investigation?.checklist?.length || 0} items):</strong>
+                          {(activeIncident.investigation?.checklist || []).map((chk, idx) => (
+                            <div key={idx} style={{ background: '#f8fafc', padding: '10px 14px', borderRadius: '6px', border: '1px solid var(--border-color)', fontSize: '0.8rem', color: 'var(--text-secondary)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                              <span>• {chk.task}</span>
+                              <span style={{ fontSize: '0.68rem', fontWeight: 600, color: chk.completed ? 'var(--accent-green)' : 'var(--text-muted)' }}>
+                                {chk.completed ? 'Completed' : 'Pending'}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+
+                  </div>
+                )}
+
+                {/* TAB 2: EVIDENCE & FACT-FINDING */}
                 {activeWorkspaceTab === 'evidence' && (
                   <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 0.8fr', gap: '32px', textAlign: 'left' }}>
                     
@@ -1153,13 +1314,57 @@ const InvestigationHub = ({ onSelectIncident }) => {
                       
                       {/* CAPA Creation Form */}
                       <form onSubmit={handleAddCapaAction} style={{ background: '#ffffff', borderRadius: '12px', border: '1px solid var(--border-color)', padding: '24px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
-                        <h3 style={{ fontSize: '0.9rem', fontWeight: 700, margin: 0 }}>Create & Map Corrective Action</h3>
+                        <h3 style={{ fontSize: '0.9rem', fontWeight: 700, margin: 0 }}>Create & Map Action Plan</h3>
                         
+                        {/* Action Classification: CA vs PA */}
                         <div className="form-group" style={{ margin: 0 }}>
-                          <label className="form-label">Corrective Action Title *</label>
+                          <label className="form-label">Action Classification *</label>
+                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                            <button
+                              type="button"
+                              onClick={() => setCapaForm({ ...capaForm, type: 'Corrective' })}
+                              style={{
+                                padding: '10px 12px',
+                                borderRadius: '8px',
+                                border: (capaForm.type || 'Corrective') === 'Corrective' ? '2px solid var(--accent-red)' : '1px solid var(--border-color)',
+                                background: (capaForm.type || 'Corrective') === 'Corrective' ? 'rgba(239, 68, 68, 0.08)' : '#f8fafc',
+                                color: (capaForm.type || 'Corrective') === 'Corrective' ? 'var(--accent-red)' : 'var(--text-secondary)',
+                                fontWeight: 700,
+                                fontSize: '0.8rem',
+                                cursor: 'pointer',
+                                textAlign: 'left'
+                              }}
+                            >
+                              <span style={{ display: 'block' }}>🔴 Corrective Action (CA)</span>
+                              <span style={{ fontSize: '0.66rem', fontWeight: 400, color: 'var(--text-muted)' }}>Fixes immediate failure at site</span>
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => setCapaForm({ ...capaForm, type: 'Preventive' })}
+                              style={{
+                                padding: '10px 12px',
+                                borderRadius: '8px',
+                                border: capaForm.type === 'Preventive' ? '2px solid var(--accent-green)' : '1px solid var(--border-color)',
+                                background: capaForm.type === 'Preventive' ? 'rgba(16, 185, 129, 0.08)' : '#f8fafc',
+                                color: capaForm.type === 'Preventive' ? 'var(--accent-green)' : 'var(--text-secondary)',
+                                fontWeight: 700,
+                                fontSize: '0.8rem',
+                                cursor: 'pointer',
+                                textAlign: 'left'
+                              }}
+                            >
+                              <span style={{ display: 'block' }}>🟢 Preventive Action (PA)</span>
+                              <span style={{ fontSize: '0.66rem', fontWeight: 400, color: 'var(--text-muted)' }}>Prevents recurrence across ALL sites</span>
+                            </button>
+                          </div>
+                        </div>
+
+                        <div className="form-group" style={{ margin: 0 }}>
+                          <label className="form-label">Action Title & Target Solution *</label>
                           <input 
                             type="text" 
-                            placeholder="Deploy double-lock lanyards, revise rigging SOP..." 
+                            placeholder="Deploy double-lock lanyards, revise company SOP..." 
                             value={capaForm.title} 
                             onChange={(e) => setCapaForm({ ...capaForm, title: e.target.value })}
                             className="form-control"
