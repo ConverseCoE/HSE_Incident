@@ -523,16 +523,18 @@ const DEFAULT_INCIDENTS = [
       status: 'In Progress',
       checklist: [
         { task: 'Cabinet isolated', completed: true },
-        { task: 'Materials verified', completed: false }
+        { task: 'Materials verified', completed: true },
+        { task: 'Circuit logs reviewed', completed: true },
+        { task: 'Thermal scan completed', completed: true }
       ],
       fiveWhys: {
-        problem: 'Insulation shield degradation went undetected.',
+        problem: 'Insulation shield degradation went undetected during enclosure audit.',
         why1: 'No check items existed for shield inspection in weekly PMs.',
         why2: 'Weekly checklists only covered functional readings.',
         why3: 'PM guidelines assumed annual checks were sufficient.',
         why4: 'High solar heat acceleration of plastic aging was not factored.',
-        why5: 'Design specs were not customized for regional high-temp environments.',
-        rootCause: 'Lack of environmental temperature considerations in preventive maintenance checklists.'
+        why5: '',
+        rootCause: ''
       },
       barrierAnalysis: []
     },
@@ -668,7 +670,7 @@ const DEFAULT_INCIDENTS = [
       status: 'In Progress',
       checklist: [
         { task: 'Ladder inspected', completed: true },
-        { task: 'Cleaning records reviewed', completed: false }
+        { task: 'Cleaning records reviewed', completed: true }
       ],
       fiveWhys: {
         problem: 'Algae build-up on platform ladder rung.',
@@ -707,7 +709,7 @@ const DEFAULT_INCIDENTS = [
     reporterType: 'Employee',
     locationDescription: 'Main warehouse waste bin area.',
     description: 'During a waste sorting check, two pressurized aerosol cans containing solvent cleaners were found disposed in the general scrap metal bin instead of the hazardous waste lockers.',
-    status: 'Under Investigation',
+    status: 'Pending Approval',
     actualConsequence: '1',
     potentialConsequence: '3',
     likelihood: '3',
@@ -798,7 +800,7 @@ const DEFAULT_INCIDENTS = [
 
 export const DatabaseProvider = ({ children }) => {
   const [incidents, setIncidents] = useState(() => {
-    const saved = localStorage.getItem('hse_incidents_v3');
+    const saved = localStorage.getItem('hse_incidents_v4');
     return saved ? JSON.parse(saved) : DEFAULT_INCIDENTS;
   });
 
@@ -840,7 +842,7 @@ export const DatabaseProvider = ({ children }) => {
 
   // Persist back to local storage
   useEffect(() => {
-    localStorage.setItem('hse_incidents_v3', JSON.stringify(incidents));
+    localStorage.setItem('hse_incidents_v4', JSON.stringify(incidents));
   }, [incidents]);
 
   useEffect(() => {
