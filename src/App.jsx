@@ -203,14 +203,16 @@ const AppContent = () => {
             <span>Dashboard Hub</span>
           </li>
           
-          <li 
-            onClick={() => handleViewChangeFromHeader('approvals')} 
-            className={`menu-item ${activeTab === 'approvals' && activeView === 'hub' ? 'active' : ''}`}
-            title="Approvals Center"
-          >
-            <CheckSquare className="menu-icon" />
-            <span>Approvals Center</span>
-          </li>
+          {hasRole([roles.SUPERVISOR, roles.SITE_MANAGER, roles.HSE_OFFICER, roles.HSE_MANAGER, roles.ADMIN]) && (
+            <li 
+              onClick={() => handleViewChangeFromHeader('approvals')} 
+              className={`menu-item ${activeTab === 'approvals' && activeView === 'hub' ? 'active' : ''}`}
+              title="Approvals Center"
+            >
+              <CheckSquare className="menu-icon" />
+              <span>Approvals Center</span>
+            </li>
+          )}
 
           {hasRole([roles.HSE_OFFICER, roles.HSE_MANAGER, roles.INVESTIGATOR, roles.ADMIN, roles.SUPERVISOR, roles.SITE_MANAGER]) && (
             <li 
