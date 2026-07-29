@@ -14,11 +14,12 @@ const InvestigationHub = ({ onSelectIncident }) => {
 
   // Active View Mode inside the Hub
   const [selectedIncidentId, setSelectedIncidentId] = useState(null);
-  const [activeWorkspaceTab, setActiveWorkspaceTab] = useState('timeline'); // timeline | rca | capa
+  const [activeWorkspaceTab, setActiveWorkspaceTab] = useState('evidence'); // evidence | timeline | rca | barriers | capa
   const [rcaDiagramMode, setRcaDiagramMode] = useState('fiveWhys'); // fiveWhys | fishbone
   const [showRcaInfoDrawer, setShowRcaInfoDrawer] = useState(false);
 
   // Local state for workspace inputs
+  const [witnessForm, setWitnessForm] = useState({ name: '', role: '', statement: '', interviewedBy: '' });
   const [newTimelineEvent, setNewTimelineEvent] = useState({ time: '', description: '', severity: 'info' });
   const [fiveWhysData, setFiveWhysData] = useState({
     problem: '',
@@ -160,6 +161,30 @@ const InvestigationHub = ({ onSelectIncident }) => {
     if (!activeIncident) return;
     updateInvestigationDetails(activeIncident.id, { fiveWhys: fiveWhysData }, currentUser.name);
     alert('RCA models saved successfully.');
+  };
+
+  const handleToggleChecklist = (taskIdx) => {
+    if (!activeIncident || !activeIncident.investigation?.checklist) return;
+    const updatedChecklist = activeIncident.investigation.checklist.map((item, idx) => 
+      idx === taskIdx ? { ...item, completed: !item.completed } : item
+    );
+    updateInvestigationDetails(activeIncident.id, { checklist: updatedChecklist }, currentUser.name);
+  };
+
+  const handleAddWitness = (e) => {
+    e.preventDefault();
+    if (!activeIncident || !witnessForm.name.trim()) return;
+    const currentWitnesses = activeIncident.witnesses || [];
+    const newWitness = {
+      id: `w-${Date.now()}`,
+      name: witnessForm.name,
+      role: witnessForm.role || 'Site Operator',
+      statement: witnessForm.statement,
+      interviewedBy: witnessForm.interviewedBy || currentUser.name,
+      interviewDate: new Date().toISOString().split('T')[0]
+    };
+    updateInvestigationDetails(activeIncident.id, { witnesses: [...currentWitnesses, newWitness] }, currentUser.name);
+    setWitnessForm({ name: '', role: '', statement: '', interviewedBy: '' });
   };
 
   const handleSaveBarriers = (updatedBarriers) => {
@@ -508,10 +533,11 @@ const InvestigationHub = ({ onSelectIncident }) => {
               {/* Tab Strip */}
               <div style={{ display: 'flex', background: '#ffffff', borderBottom: '1px solid var(--border-color)', padding: '0 32px' }}>
                 {[
-                  { id: 'timeline', label: '1. Timeline Builder' },
-                  { id: 'rca', label: '2. Root Cause (5-Whys & Fishbone)' },
-                  { id: 'barriers', label: '3. Barrier Safeguard Audit' },
-                  { id: 'capa', label: '4. CAPA Action Mapping' }
+                  { id: 'evidence', label: '1. Evidence & Fact-Finding' },
+                  { id: 'timeline', label: '2. Timeline Builder' },
+                  { id: 'rca', label: '3. Root Cause (5-Whys & Fishbone)' },
+                  { id: 'barriers', label: '4. Barrier Safeguard Audit' },
+                  { id: 'capa', label: '5. CAPA Action Mapping' }
                 ].map(tab => (
                   <button
                     key={tab.id}
@@ -536,7 +562,181 @@ const InvestigationHub = ({ onSelectIncident }) => {
               {/* Scrollable Work Console Container */}
               <div style={{ flex: 1, overflowY: 'auto', padding: '32px' }}>
                 
-                {/* TAB 1: INTERACTIVE TIMELINE BUILDER */}
+                {/* TAB 1: EVIDENCE & FACT-FINDING */}
+                {activeWorkspaceTab === 'evidence' && (
+                  <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 0.8fr', gap: '32px', textAlign: 'left' }}>
+                    
+                    {/* Left Column: Checklist Audit & Witness List */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                      
+                      {/* Fact-Finding Checklist Card */}
+                      <div style={{ background: '#ffffff', borderRadius: '12px', border: '1px solid var(--border-color)', padding: '24px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                          <div>
+                            <h3 style={{ fontSize: '0.94rem', fontWeight: 700, margin: 0, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                              <CheckSquare size={18} style={{ color: 'var(--accent-cyan)' }} />
+                              Fact-Finding Audit Checklist
+                            </h3>
+                            <span style={{ fontSize: '0.74rem', color: 'var(--text-muted)' }}>Complete all checklist items before advancing to Root Cause Analysis</span>
+                          </div>
+                          {activeIncident.investigation?.checklist && (
+                            <span style={{
+                              fontSize: '0.78rem',
+                              fontWeight: 700,
+                              background: 'rgba(6, 182, 212, 0.1)',
+                              color: 'var(--accent-cyan)',
+                              padding: '4px 10px',
+                              borderRadius: '12px'
+                            }}>
+                              {Math.round((activeIncident.investigation.checklist.filter(c => c.completed).length / activeIncident.investigation.checklist.length) * 100)}% Complete
+                            </span>
+                          )}
+                        </div>
+
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                          {(activeIncident.investigation?.checklist || []).map((chk, idx) => (
+                            <label 
+                              key={idx} 
+                              style={{ 
+                                display: 'flex', 
+                                alignItems: 'center', 
+                                gap: '12px', 
+                                padding: '12px 16px', 
+                                borderRadius: '8px', 
+                                background: chk.completed ? 'rgba(16, 185, 129, 0.04)' : '#f8fafc',
+                                border: '1px solid var(--border-color)',
+                                cursor: 'pointer',
+                                transition: 'all 0.15s ease'
+                              }}
+                            >
+                              <input 
+                                type="checkbox" 
+                                checked={chk.completed} 
+                                onChange={() => handleToggleChecklist(idx)} 
+                                style={{ width: '18px', height: '18px', accentColor: 'var(--accent-cyan)', cursor: 'pointer' }}
+                              />
+                              <span style={{ 
+                                fontSize: '0.84rem', 
+                                fontWeight: chk.completed ? 600 : 400,
+                                color: chk.completed ? 'var(--text-primary)' : 'var(--text-secondary)',
+                                textDecoration: chk.completed ? 'none' : 'none'
+                              }}>
+                                {chk.task}
+                              </span>
+                            </label>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Witness Statements List */}
+                      <div style={{ background: '#ffffff', borderRadius: '12px', border: '1px solid var(--border-color)', padding: '24px' }}>
+                        <h3 style={{ fontSize: '0.94rem', fontWeight: 700, margin: '0 0 16px 0', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <Users size={18} style={{ color: 'var(--accent-cyan)' }} />
+                          Recorded Witness Statements ({activeIncident.witnesses?.length || 0})
+                        </h3>
+
+                        {(!activeIncident.witnesses || activeIncident.witnesses.length === 0) ? (
+                          <div style={{ padding: '20px', textAlign: 'center', color: 'var(--text-muted)', background: '#f8fafc', borderRadius: '8px', border: '1px dashed var(--border-color)', fontSize: '0.8rem' }}>
+                            No witness statements recorded yet. Use the form to record witness interviews.
+                          </div>
+                        ) : (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                            {activeIncident.witnesses.map((w, idx) => (
+                              <div key={w.id || idx} style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '14px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                  <strong style={{ fontSize: '0.84rem', color: 'var(--text-primary)' }}>{w.name}</strong>
+                                  <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Role: {w.role}</span>
+                                </div>
+                                <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', margin: 0, fontStyle: 'italic', background: '#ffffff', padding: '8px 12px', borderRadius: '6px', border: '1px solid var(--border-color)' }}>
+                                  "{w.statement}"
+                                </p>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.68rem', color: 'var(--text-muted)', marginTop: '2px' }}>
+                                  <span>Interviewed by: {w.interviewedBy || 'Investigator'}</span>
+                                  <span>Date: {w.interviewDate || 'Recorded'}</span>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+
+                    </div>
+
+                    {/* Right Column: Add Witness Form & Evidence Files */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                      
+                      {/* Form: Record Witness Interview */}
+                      <form onSubmit={handleAddWitness} style={{ background: '#ffffff', borderRadius: '12px', border: '1px solid var(--border-color)', padding: '24px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                        <h3 style={{ fontSize: '0.9rem', fontWeight: 700, margin: 0, color: 'var(--text-primary)' }}>Record Witness Statement</h3>
+                        
+                        <div className="form-group" style={{ margin: 0 }}>
+                          <label className="form-label">Witness Full Name *</label>
+                          <input 
+                            type="text" 
+                            placeholder="e.g. Jonas Lindqvist" 
+                            value={witnessForm.name} 
+                            onChange={(e) => setWitnessForm({ ...witnessForm, name: e.target.value })}
+                            className="form-control"
+                            required
+                          />
+                        </div>
+
+                        <div className="form-group" style={{ margin: 0 }}>
+                          <label className="form-label">Role / Contractor Company</label>
+                          <input 
+                            type="text" 
+                            placeholder="e.g. Turbine Tech Lead (EcoPower)" 
+                            value={witnessForm.role} 
+                            onChange={(e) => setWitnessForm({ ...witnessForm, role: e.target.value })}
+                            className="form-control"
+                          />
+                        </div>
+
+                        <div className="form-group" style={{ margin: 0 }}>
+                          <label className="form-label">Statement Summary *</label>
+                          <textarea 
+                            rows={3}
+                            placeholder="State exact witness observations and comments..." 
+                            value={witnessForm.statement} 
+                            onChange={(e) => setWitnessForm({ ...witnessForm, statement: e.target.value })}
+                            className="form-textarea"
+                            required
+                          />
+                        </div>
+
+                        <button type="submit" className="btn btn-primary" style={{ background: 'var(--accent-cyan)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+                          <Plus size={16} /> Save Witness Record
+                        </button>
+                      </form>
+
+                      {/* Evidence Files Card */}
+                      <div style={{ background: '#ffffff', borderRadius: '12px', border: '1px solid var(--border-color)', padding: '24px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                        <h3 style={{ fontSize: '0.9rem', fontWeight: 700, margin: 0, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <FileText size={18} style={{ color: 'var(--accent-cyan)' }} />
+                          Digital Evidence & Artifacts
+                        </h3>
+                        <div style={{ background: '#f8fafc', borderRadius: '8px', border: '1px solid var(--border-color)', padding: '12px', fontSize: '0.78rem', color: 'var(--text-secondary)', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <span>📷 Site Inspection Photos</span>
+                            <span style={{ color: 'var(--accent-green)', fontWeight: 700 }}>4 Files</span>
+                          </div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <span>📄 SCADA Alarm & Telemetry Export</span>
+                            <span style={{ color: 'var(--accent-green)', fontWeight: 700 }}>Verified</span>
+                          </div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <span>📋 Permit-to-work PDF</span>
+                            <span style={{ color: 'var(--accent-green)', fontWeight: 700 }}>Attached</span>
+                          </div>
+                        </div>
+                      </div>
+
+                    </div>
+
+                  </div>
+                )}
+
+                {/* TAB 2: INTERACTIVE TIMELINE BUILDER */}
                 {activeWorkspaceTab === 'timeline' && (
                   <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 0.8fr', gap: '32px', textAlign: 'left' }}>
                     
