@@ -509,8 +509,9 @@ const InvestigationHub = ({ onSelectIncident }) => {
               <div style={{ display: 'flex', background: '#ffffff', borderBottom: '1px solid var(--border-color)', padding: '0 32px' }}>
                 {[
                   { id: 'timeline', label: '1. Timeline Builder' },
-                  { id: 'rca', label: '2. RCA Sandbox (Fishbone & 5-Whys)' },
-                  { id: 'capa', label: '3. CAPA Mapping Console' }
+                  { id: 'rca', label: '2. Root Cause (5-Whys & Fishbone)' },
+                  { id: 'barriers', label: '3. Barrier Safeguard Audit' },
+                  { id: 'capa', label: '4. CAPA Action Mapping' }
                 ].map(tab => (
                   <button
                     key={tab.id}
@@ -893,18 +894,20 @@ const InvestigationHub = ({ onSelectIncident }) => {
                       </div>
                     )}
 
-                    {/* BARRIER ANALYSIS CONSOLE */}
-                    <div style={{ marginTop: '16px' }}>
-                      <BarrierAnalysis 
-                        initialBarriers={activeIncident.investigation?.barrierAnalysis || []}
-                        onSave={handleSaveBarriers}
-                      />
-                    </div>
-
                   </div>
                 )}
 
-                {/* TAB 3: CAPA MAPPING CONSOLE */}
+                {/* TAB 3: BARRIER SAFEGUARD AUDIT */}
+                {activeWorkspaceTab === 'barriers' && (
+                  <div style={{ textAlign: 'left' }}>
+                    <BarrierAnalysis 
+                      initialBarriers={activeIncident.investigation?.barrierAnalysis || []}
+                      onSave={handleSaveBarriers}
+                    />
+                  </div>
+                )}
+
+                {/* TAB 4: CAPA MAPPING CONSOLE */}
                 {activeWorkspaceTab === 'capa' && (
                   <div style={{ display: 'grid', gridTemplateColumns: '0.9fr 1.1fr', gap: '32px', textAlign: 'left' }}>
                     
